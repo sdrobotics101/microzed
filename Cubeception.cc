@@ -21,11 +21,16 @@
 #include "Utilities/regio.h"
 #include "IMU/IMUController.h"
 #include "PS/PSController.h"
-#include "PWM/pwm.h"
+#include "PWM/PWMController.h"
 #include "Network/NetworkClient.hpp"
 
 int main(int argc, char **argv)
 {
+	NetworkClient networkClient;
+	IMUController imuController;
+	PSController psController;
+	PWMController pwmController(&networkClient, &imuController, &psController);
+	pwmController.start();
     return (0);
 }
 

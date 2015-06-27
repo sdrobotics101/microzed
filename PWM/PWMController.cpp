@@ -7,12 +7,16 @@
 
 #include "PWMController.h"
 
-PWMController::PWMController() {
-	// TODO Auto-generated constructor stub
+PWMController::PWMController(NetworkClient *networkClient,
+		  	  	  	  	  	 IMUController *imuController,
+		  	  	  	  	  	 PSController *psController) {
 
 }
 
 PWMController::~PWMController() {
-	// TODO Auto-generated destructor stub
+
 }
 
+void PWMController::start() {
+
+}
