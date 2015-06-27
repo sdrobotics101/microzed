@@ -19,8 +19,8 @@
 #include <stdio.h>
 
 #include "Utilities/regio.h"
-#include "IMU/mpu9250.h"
-#include "PS/ms5803.h"
+#include "IMU/IMUController.h"
+#include "PS/PSController.h"
 #include "PWM/pwm.h"
 #include "Network/NetworkClient.hpp"
 

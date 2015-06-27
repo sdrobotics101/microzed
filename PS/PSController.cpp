@@ -59,6 +59,9 @@ void PSController::calculateDepth() {
 }
 
 void PSController::run() {
-	pollSensors();
-	calculateDepth();
+	while(1) {
+		pollSensors();
+		calculateDepth();
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 }

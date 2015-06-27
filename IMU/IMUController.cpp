@@ -75,6 +75,9 @@ void IMUController::calculateOrientation() {
 }
 
 void IMUController::run() {
-	pollSensors();
-	calculateOrientation();
+	while(1) {
+		pollSensors();
+		calculateOrientation();
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 }
