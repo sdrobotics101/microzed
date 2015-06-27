@@ -54,7 +54,6 @@ private:
 	double _yAngle;
 	double _zAngle;
 
-
 	std::thread *_thread;
 };
 
