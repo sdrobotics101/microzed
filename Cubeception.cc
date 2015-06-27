@@ -17,10 +17,6 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <getopt.h>
 
 #include "Utilities/regio.h"
 #include "IMU/mpu9250.h"
