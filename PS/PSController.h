@@ -19,6 +19,7 @@
 #define WATERDENSITY 1000 //in kg/m^3
 #define G 			 9.81 //in m/s^2
 #define CONVERSION   100  //conversion factor from Pa to mBar
+#define ATMOSPHERE	 1012.414 //in mBar
 
 class PSController {
 public:

@@ -64,7 +64,7 @@ void PSController::pollSensors() {
 
 void PSController::calculateDepth() {
 	std::lock_guard<std::mutex> lock(_mutex);
-	_depth = _avgPressure * _conversionFactor;
+	_depth = (_avgPressure - ATMOSPHERE) * _conversionFactor;
 }
 
 void PSController::run() {
