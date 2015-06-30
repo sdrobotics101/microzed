@@ -13,6 +13,7 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 _networkClient(networkClient),
 		  	  	  	  	  	 _imuController(imuController),
 		  	  	  	  	  	 _psController(psController) {
+	_networkClient->open("192.168.1.21", 8888);
 	_networkClient->start();
 	_imuController->start();
 	_psController->start();
