@@ -8,9 +8,9 @@
 #ifndef REGIO_H_
 #define REGIO_H_
 
-#include <stdio.h>
+#include <stdint.h>
 
-int regio_wr32(unsigned int addr, unsigned int  data, int verbose);
-int regio_rd32(unsigned int addr, unsigned int *data, int verbose);
+int regio_wr32(uint32_t addr, uint32_t  data, int verbose);
+int regio_rd32(uint32_t addr, uint32_t *data, int verbose);
 
 #endif /* REGIO_H_ */

@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
-#include "../Utilities/regio.h"
 #include "pwm.h"
 
 // PWM constants:
@@ -20,7 +19,7 @@
 #define PWM_MCTL_ADDR(a,b)  (a+PWM_MCTL_BASE+(4*b))
 #define PWM_CCTL_ADDR(a,b)  (a+PWM_CCTL_BASE+(4*b))
 
-PWM::PWM(unsigned int pwm_device, int verbose) 
+PWM::PWM(uint32_t pwm_device, int verbose) 
 {
     _pwm_device = pwm_device;
     _verbose    = verbose;
@@ -36,12 +35,12 @@ void PWM::disable()
     regio_wr32(PWM_GCTL_ADDR(_pwm_device), 0x00000000, _verbose-1);
 }
 
-void PWM::setMap(int idx, int chn) 
+void PWM::setMap(int idx, uint32_t chn) 
 {
-    int reg_id  = (idx % 24) >> 2;
-    int fld_id  = (idx %  4);
+    uint32_t reg_id  = (uint32_t)((idx % 24) >> 2);
+    uint32_t fld_id  = (uint32_t)((idx %  4));
 
-    unsigned int data, mask;
+    uint32_t data, mask;
 
     regio_rd32(PWM_MCTL_ADDR(_pwm_device,reg_id), &data, _verbose-1);
     mask    = (((1<<5)-1) << (8*fld_id));
@@ -49,7 +48,7 @@ void PWM::setMap(int idx, int chn)
     regio_wr32(PWM_MCTL_ADDR(_pwm_device,reg_id),  data, _verbose-1);
 }
 
-void PWM::setMap(int * table) 
+void PWM::setMap(uint32_t * table) 
 {
     int idx;
     for (idx=0; idx<24; idx++) {
@@ -57,12 +56,12 @@ void PWM::setMap(int * table)
     }
 }
 
-void PWM::getMap(int idx, int * chn) 
+void PWM::getMap(int idx, uint32_t * chn) 
 {
-    int reg_id  = (idx % 24) >> 2;
-    int fld_id  = (idx %  4);
+    uint32_t reg_id  = (uint32_t)((idx % 24) >> 2);
+    uint32_t fld_id  = (uint32_t)((idx %  4));
 
-    unsigned int data, mask;
+    uint32_t data, mask;
 
     regio_rd32(PWM_MCTL_ADDR(_pwm_device,reg_id), &data, _verbose-1);
     mask    = (((1<<5)-1) << (8*fld_id));
@@ -70,7 +69,7 @@ void PWM::getMap(int idx, int * chn)
     *chn    = data;
 }
 
-void PWM::getMap(int * table) 
+void PWM::getMap(uint32_t * table) 
 {
     int idx;
     for (idx=0; idx<24; idx++) {
@@ -78,14 +77,14 @@ void PWM::getMap(int * table)
     }
 }
 
-void PWM::setDuty(int idx, float percent) 
+void PWM::setDuty(int idx, double percent) 
 {
-    unsigned int data = ((unsigned int)((percent/100.0)*8192.0));
+    uint32_t data = ((uint32_t)((percent/100.0)*8192.0));
 
     regio_wr32(PWM_CCTL_ADDR(_pwm_device,idx), ((data > 8191) ? 8191 : data), _verbose-1);
 }
 
-void PWM::setDuty(float * percents) 
+void PWM::setDuty(double * percents) 
 {
     int idx;
     for (idx=0; idx<24; idx++) {
@@ -93,12 +92,12 @@ void PWM::setDuty(float * percents)
     }
 }
 
-void PWM::setValue(int idx, unsigned int value) 
+void PWM::setValue(int idx, uint32_t value) 
 {
     regio_wr32(PWM_CCTL_ADDR(_pwm_device,idx), ((value > 8191) ? 8191 : value), _verbose-1);
 }
 
-void PWM::setValue(unsigned int * values) 
+void PWM::setValue(uint32_t * values) 
 {
     int idx;
     for (idx=0; idx<24; idx++) {
@@ -106,16 +105,16 @@ void PWM::setValue(unsigned int * values)
     }
 }
 
-void PWM::getDuty(int idx, float * percent) 
+void PWM::getDuty(int idx, double * percent) 
 {
-    unsigned int data;
+    uint32_t data;
 
     regio_rd32(PWM_CCTL_ADDR(_pwm_device,idx), &data, _verbose-1);
 
-    *percent = ((((float)data)*100.0)/8192.0);
+    *percent = ((((double)data)*100.0)/8192.0);
 }
 
-void PWM::getDuty(float * percents) 
+void PWM::getDuty(double * percents) 
 {
     int idx;
     for (idx=0; idx<24; idx++) {
@@ -123,16 +122,16 @@ void PWM::getDuty(float * percents)
     }
 }
 
-void PWM::getValue(int idx, unsigned int * value) 
+void PWM::getValue(int idx, uint32_t * value) 
 {
-    unsigned int data;
+    uint32_t data;
 
     regio_rd32(PWM_CCTL_ADDR(_pwm_device,idx), &data, _verbose-1);
 
     *value = data;
 }
 
-void PWM::getValue(unsigned int * values) 
+void PWM::getValue(uint32_t * values) 
 {
     int idx;
     for (idx=0; idx<24; idx++) {

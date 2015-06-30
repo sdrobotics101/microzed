@@ -58,8 +58,6 @@
  */
 
 #include <stdint.h>
-#include <stdbool.h>
-
 #include "dev_spi.h"
 
 #define WISHBONE_FREQ 	100000000

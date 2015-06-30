@@ -5,12 +5,12 @@
  *      Author: vincentb
  */
 
-#include "dev_defs.h"
-#include "spi.h"
-#include "regio.h"
-
+#include <stdio.h>
 #include <assert.h>
-#include <string.h>
+
+#include "dev_defs.h"
+#include "regio.h"
+#include "spi.h"
 
 #define _SPI_MASK_ALL       0xFFFFFFFF
 
@@ -38,7 +38,7 @@ bool spiInit(SPI_Device dev, SpiInit * init, int verbose)
 
     spiRMW( SPI_DEVICE_DIVIDER(dev), (WISHBONE_FREQ / ( init->bitrate * 2 )) - 1, SPI_DIV_MASK, verbose);
 
-    const uint16_t mode[] = {
+    const uint32_t mode[] = {
             SPI_CTL_MODE_0, SPI_CTL_MODE_1, SPI_CTL_MODE_2, SPI_CTL_MODE_3 };
 
     spiRMW( SPI_DEVICE_CTL(dev), mode[init->mode], SPI_CTL_MODE_MASK, verbose);
@@ -65,7 +65,7 @@ void spiAsyncTx(SPI_Device dev, uint8_t * dataIn, int len, int verbose)
         int bcnt = 0;
         int wcnt = 0;
 
-        unsigned int tx[4] = {0, 0, 0, 0};
+        uint32_t tx[4] = {0, 0, 0, 0};
         for (wcnt=0; wcnt<4; wcnt++) {
             for (bcnt=0; bcnt<4; bcnt++) {
                 if (clen < len) {
@@ -112,7 +112,7 @@ void spiASyncRx(SPI_Device dev, uint8_t * dataOut, int verbose)
     int bcnt = 0;
     int wcnt = 0;
 
-    unsigned int rx[4] = {0, 0, 0, 0};
+    uint32_t rx[4] = {0, 0, 0, 0};
 
     regio_rd32(SPI_DEVICE_RX0(dev), &rx[0], verbose-1);
     regio_rd32(SPI_DEVICE_RX1(dev), &rx[1], verbose-1);

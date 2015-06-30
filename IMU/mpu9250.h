@@ -1,53 +1,61 @@
 #ifndef ____MPU9250_H__
 #define ____MPU9250_H__
 
+#include <stdint.h>
+
 #include "../Utilities/spi.h"
 
 class MPU9250
 {
 public:
-    MPU9250(unsigned int spi_device, int verbose = 0);
+    MPU9250(uint32_t spi_device, int verbose = 0);
+
+    void reset();
 
     bool init(uint8_t sample_rate_div, uint8_t low_pass_filter);
 
-    void read(float *ax, float *ay, float *az,
-              float *gx, float *gy, float *gz,
-              float *mx, float *my, float *mz,
-              float *temp);
+    void read(double *ax, double *ay, double *az,
+              double *gx, double *gy, double *gz,
+              double *mx, double *my, double *mz,
+              double *temp);
             
-    unsigned int set_gyro_scale(int scale);
-    unsigned int set_accl_scale(int scale);
+    unsigned int set_gyro_scale(uint8_t scale);
+    unsigned int set_accl_scale(uint8_t scale);
 
     uint8_t chipid_mp9250();
     uint8_t chipid_ak8963();
     
 private:
 
-    uint8_t wr_reg     ( uint8_t wr_addr, uint8_t wr_data);
-    uint8_t rd_reg     ( uint8_t wr_addr, uint8_t wr_data);
-    void    rd_reg_mult( uint8_t rd_addr, uint8_t * rd_buf, unsigned int bytes);
+    uint8_t wr_mp9250     ( uint8_t wr_addr, uint8_t wr_data);
+    uint8_t rd_mp9250     ( uint8_t wr_addr, uint8_t wr_data);
+    void    rd_mp9250_mult( uint8_t rd_addr, uint8_t * rd_buf, unsigned int bytes);
 
-    void  calib_accl();
-    void  calib_magn();
+    void    wr_ak8963     ( uint8_t wr_addr, uint8_t wr_data);
+    uint8_t rd_ak8963     ( uint8_t rd_addr);
+    void    rd_ak8963_mult( uint8_t rd_addr, uint8_t * rd_buf, unsigned int bytes);
 
-    void  read_accl();
-    void  read_gyro();
-    void  read_magn();
-    void  read_temp();
+    void   calib_accl();
+    void   calib_magn();
 
-    float accl_div;
-    float gyro_div;
+    void   read_accl();
+    void   read_gyro();
+    void   read_magn();
+    void   read_temp();
+
+    double accl_div;
+    double gyro_div;
     
-    int   accl_cal[3];
-    float magn_asa[3];
+    int    accl_cal[3];
+    double magn_asa[3];
 
-    float accl_val[3];
-    float gyro_val[3];
-    float magn_val[3];
-    float temp_val;
+    double accl_val[3];
+    double gyro_val[3];
+    double magn_val[3];
+    double temp_val;
 
-    unsigned int _spi_device;
-    unsigned int _verbose;
+    uint32_t _spi_device;
+    int      _verbose;
 };
 
 #endif
@@ -231,18 +239,18 @@ private:
 
 /* ---- Sensitivity --------------------------------------------------------- */
 
-#define MPU9250A_2g       ((float)0.000061035156f) // 0.000061035156 g/LSB
-#define MPU9250A_4g       ((float)0.000122070312f) // 0.000122070312 g/LSB
-#define MPU9250A_8g       ((float)0.000244140625f) // 0.000244140625 g/LSB
-#define MPU9250A_16g      ((float)0.000488281250f) // 0.000488281250 g/LSB
+#define MPU9250A_2g       ((double)0.000061035156f) // 0.000061035156 g/LSB
+#define MPU9250A_4g       ((double)0.000122070312f) // 0.000122070312 g/LSB
+#define MPU9250A_8g       ((double)0.000244140625f) // 0.000244140625 g/LSB
+#define MPU9250A_16g      ((double)0.000488281250f) // 0.000488281250 g/LSB
 
-#define MPU9250G_250dps   ((float)0.007633587786f) // 0.007633587786 dps/LSB
-#define MPU9250G_500dps   ((float)0.015267175572f) // 0.015267175572 dps/LSB
-#define MPU9250G_1000dps  ((float)0.030487804878f) // 0.030487804878 dps/LSB
-#define MPU9250G_2000dps  ((float)0.060975609756f) // 0.060975609756 dps/LSB
+#define MPU9250G_250dps   ((double)0.007633587786f) // 0.007633587786 dps/LSB
+#define MPU9250G_500dps   ((double)0.015267175572f) // 0.015267175572 dps/LSB
+#define MPU9250G_1000dps  ((double)0.030487804878f) // 0.030487804878 dps/LSB
+#define MPU9250G_2000dps  ((double)0.060975609756f) // 0.060975609756 dps/LSB
 
-#define MPU9250M_4800uT   ((float)0.6f)            // 0.6 uT/LSB
+#define MPU9250M_4800uT   ((double)0.6f)            // 0.6 uT/LSB
 
-#define MPU9250T_85degC   ((float)0.002995177763f) // 0.002995177763 degC/LSB
+#define MPU9250T_85degC   ((double)0.002995177763f) // 0.002995177763 degC/LSB
 
-#define     Magnetometer_Sensitivity_Scale_Factor ((float)0.15f)    
+#define     Magnetometer_Sensitivity_Scale_Factor ((double)0.15f)    

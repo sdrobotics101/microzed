@@ -35,47 +35,43 @@
 #ifndef ____MS5803__
 #define ____MS5803__
 
+#include <stdint.h>
+
 #include "../Utilities/spi.h"
 
 class MS5803
 {
 public:
-    // Constructor for SPI
-    MS5803(unsigned int spi_device, int verbose = 0);
+
+    MS5803(uint32_t spi_device, int verbose = 0);
+
+    void resetSensor();
     
-    /* Initializes sensor and downloads coefficient values from the device.
-     Must call this before readSensor. */
     bool initSensor();
     
-    /* Does the actual read from the sensor. */
     void readSensor();
     
-    /* Once readSensor is called, the temp and pressure values can be
-     retrieved from these methods. */
-    float temperature() const       { return temp;  }  // returns temp in degrees C.
-    float pressure() const          { return press; }  // Returns pressure in mBars. 
-    
-    /* Resets the sensor */
-    void resetSensor();
+    double temperature() const { return temp;  }    // returns temp in degrees C.
+    double pressure()    const { return press; }    // Returns pressure in mBars. 
     
 private:
     
-    float             press;                        // Stores actual pressure in mbars
-    float             temp;                         // Stores actual temp in degrees C.
+    double            press;                        // Stores actual pressure in mbars
+    double            temp;                         // Stores actual temp in degrees C.
 
-    unsigned int      _spi_device;                  // pointer to spi device
+    uint32_t          _spi_device;                  // pointer to spi device
     int               _verbose;                     // verbose printouts
 
     unsigned int      sensorCoefficients[8];        // calibration coefficients
     unsigned long     D1;                           // Stores uncompensated pressure value
     unsigned long     D2;                           // Stores uncompensated temperature value
-    float             deltaTemp;                    // These three variable are used for the conversion.
-    float             sensorOffset;
-    float             sensitivity;
+    double            deltaTemp;                    // These three variable are used for the conversion.
+    double            sensorOffset;
+    double            sensitivity;
 
     unsigned int  ms5803ReadCoefficient(uint8_t index); // Reads the coeffincient data from the sensor.
     unsigned char ms5803CRC4(unsigned int n_prom[]);    // Verifies the validity of the coeffient data using CRC4.
-    unsigned long ms5803CmdAdc(char cmd);               // Handles commands to the sensor.
+    unsigned long ms5803CmdAdc(uint8_t cmd);               // Handles commands to the sensor.
 };
 
 #endif /* defined(____MS5803__) */

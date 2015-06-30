@@ -27,10 +27,10 @@
 #include "macro.h"
 
 /** Basic register addr. */
-#define     _reg_a      volatile unsigned int
+#define     _reg_a      volatile uint32_t
 
 /** Basic register type. */
-#define     _reg_t      unsigned int
+#define     _reg_t      uint32_t
 
 /** Input/Output register */
 #define     reg_io      _reg_t

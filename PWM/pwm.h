@@ -9,37 +9,41 @@
 #ifndef ____PWM__
 #define ____PWM__
 
+#include <stdint.h>
+
+#include "../Utilities/regio.h"
+
 class PWM
 {
 public:
 
-    PWM(unsigned int pwm_device, int verbose = 0);
+    PWM(uint32_t pwm_device, int verbose = 0);
 
     void enable();
     void disable();
 
-    void setMap(int idx, int chn);
-    void setMap(int * table);
+    void setMap(int idx, uint32_t chn);
+    void setMap(uint32_t * table);
 
-    void getMap(int idx, int * chn);
-    void getMap(int * table);
+    void getMap(int idx, uint32_t * chn);
+    void getMap(uint32_t * table);
 
-    void setDuty(int idx, float percent);
-    void setDuty(float * percents);
+    void setDuty(int idx, double percent);
+    void setDuty(double * percents);
 
-    void setValue(int idx, unsigned int value);
-    void setValue(unsigned int * values);
+    void setValue(int idx, uint32_t value);
+    void setValue(uint32_t * values);
 
-    void getDuty(int idx, float * percent);
-    void getDuty(float * percents);
+    void getDuty(int idx, double * percent);
+    void getDuty(double * percents);
 
-    void getValue(int idx, unsigned int * value);
-    void getValue(unsigned int * values);
+    void getValue(int idx, uint32_t * value);
+    void getValue(uint32_t * values);
     
 private:
     
-    unsigned int      _pwm_device;                  // pointer to pwm device
-    int               _verbose;                     // verbose printouts
+    uint32_t _pwm_device;                  // pointer to pwm device
+    int      _verbose;                     // verbose printouts
 };
 
 #endif /* defined(____PWM__) */

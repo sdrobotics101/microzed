@@ -55,7 +55,7 @@ void PWMController::calculateOutputs() {
 }
 
 void PWMController::writeOutputs() {
-	_pwm->setDuty((float*)_pwmOutputs);
+	_pwm->setDuty(_pwmOutputs);
 
 	_networkClient->get_m2n_standard_packet()->set_orient_x(_xAngle);
 	_networkClient->get_m2n_standard_packet()->set_orient_y(_yAngle);

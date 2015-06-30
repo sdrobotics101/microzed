@@ -7,8 +7,6 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -19,15 +17,15 @@
 #define REGIO_MAP_PAGESIZE    (16*64*1024)
 #define REGIO_MAP_MASK        ((off_t) (REGIO_MAP_PAGESIZE-1))
 
-int regio_wr32(unsigned int addr, unsigned int  data, int verbose) {
+int regio_wr32(uint32_t addr, uint32_t  data, int verbose) {
 
-                      int  fd;
-             unsigned int  page_size, mapped_pages;
-                     void *pmem;
-                     void *vaddr;
-    volatile unsigned int *reg_addr;
-                    off_t  phy_addr;
-                   size_t  phy_length;
+    int fd;
+    int page_size, mapped_pages;
+    void *pmem;
+    void *vaddr;
+    volatile uint32_t *reg_addr;
+    off_t phy_addr;
+    size_t phy_length;
 
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
         printf("ERROR : failed to open /dev/mem\n");
@@ -70,11 +68,11 @@ int regio_wr32(unsigned int addr, unsigned int  data, int verbose) {
     }
 
     vaddr       = (void *)((char *) pmem + (phy_addr & REGIO_MAP_MASK));
-    reg_addr    = ((volatile unsigned int *)((char *) vaddr + addr));
+    reg_addr    = ((volatile uint32_t *)((char *) vaddr + addr));
     *reg_addr   = data;
 
     if (verbose > 1) {
-            printf("reg_addr              : 0x%08x\n", (unsigned int)reg_addr);
+            printf("reg_addr              : 0x%08x\n", (uint32_t)reg_addr);
             printf("reg_data              : 0x%08x\n", data);
     }
 
@@ -86,16 +84,16 @@ int regio_wr32(unsigned int addr, unsigned int  data, int verbose) {
     return (0);
 }
 
-int regio_rd32(unsigned int addr, unsigned int *data, int verbose) {
+int regio_rd32(uint32_t addr, uint32_t *data, int verbose) {
 
-                      int  fd;
-             unsigned int  page_size, mapped_pages;
-                     void *pmem;
-                     void *vaddr;
-    volatile unsigned int *reg_addr;            
-             unsigned int  reg_data;
-                    off_t  phy_addr;
-                   size_t  phy_length;
+    int fd;
+    int page_size, mapped_pages;
+    void *pmem;
+    void *vaddr;
+    volatile uint32_t *reg_addr;            
+    uint32_t  reg_data;
+    off_t phy_addr;
+    size_t phy_length;
 
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0) {
         printf("ERROR : failed to open /dev/mem\n");
@@ -138,13 +136,13 @@ int regio_rd32(unsigned int addr, unsigned int *data, int verbose) {
     }
 
     vaddr       = (char *) pmem + (phy_addr & REGIO_MAP_MASK);
-    reg_addr    = ((volatile unsigned int *)((char *) vaddr +  addr));
+    reg_addr    = ((volatile uint32_t *)((char *) vaddr +  addr));
 
     reg_data    = *reg_addr;
     *data       = reg_data;
 
     if (verbose > 1) {
-            printf("reg_addr              : 0x%08x\n", (unsigned int)reg_addr);
+            printf("reg_addr              : 0x%08x\n", (uint32_t)reg_addr);
             printf("reg_data              : 0x%08x\n", reg_data);
     }
 

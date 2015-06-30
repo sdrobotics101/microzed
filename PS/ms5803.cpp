@@ -32,7 +32,9 @@
 //  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 //  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <math.h>
 
@@ -50,8 +52,7 @@
 #define SENSOR_CMD_ADC_2048   0x06
 #define SENSOR_CMD_ADC_4096   0x08
 
-// Constructor when using SPI.
-MS5803::MS5803(unsigned int spi_device, int verbose) {
+MS5803::MS5803(uint32_t spi_device, int verbose) {
     _spi_device = spi_device;
     _verbose    = verbose;
 
@@ -67,6 +68,29 @@ MS5803::MS5803(unsigned int spi_device, int verbose) {
     int i;
     for(i=0; i<8; i++)
         sensorCoefficients[i] = 0;
+}
+
+// Sends a power on reset command to the sensor.
+// Should be done at powerup and maybe on a periodic basis (needs to confirm with testing).
+void MS5803::resetSensor() {
+
+    uint8_t buf_rd[16];
+    uint8_t buf_wr[16];
+
+    int i;
+    for(i=0; i<16; i++) {
+        buf_rd[i] = 0;
+        buf_wr[i] = 0;
+    }
+
+    buf_wr[0] = SENSOR_CMD_RESET;
+
+    spiSelect  (_spi_device, 0, _verbose-1);
+    spiTxRx    (_spi_device, buf_wr, buf_rd, 1, _verbose-1);
+    spiDeselect(_spi_device, _verbose-1);
+
+    if (_verbose > 1)
+        printf("MS5803 : resetSensor completed\n");
 }
 
 bool MS5803::initSensor() {
@@ -87,22 +111,20 @@ bool MS5803::initSensor() {
     resetSensor(); 
 	
 	// Read sensor coefficients - these will be used to convert sensor data into pressure and temp data
-    for (int i = 0; i < 8; i++ ){
+    for (uint8_t i = 0; i < 8; i++ ){
         sensorCoefficients[ i ] = ms5803ReadCoefficient( i );  // read coefficients
         
         if (_verbose > 0) {
             printf("MS5803 : 0x%08x : coeff        : %d : %u\n", _spi_device, i, sensorCoefficients[i]);
         }
-
-        // ROHAN : CHECK THERE USED TO BE A DELAY AT THIS POINT
     }
     
     unsigned char p_crc = sensorCoefficients[ 7 ];
     unsigned char n_crc = ms5803CRC4( sensorCoefficients ); // calculate the CRC
     
-    // If the calculated CRC does not match the returned CRC, then there is a data integrity issue.
-    // Check the connections for bad solder joints or "flakey" cables. 
-    // If this issue persists, you may have a bad sensor.
+    // If the calculated CRC does not match the returned CRC, then there is a
+    // data integrity issue. Check the connections for bad solder joints or
+    // "flakey" cables.  If this issue persists, you may have a bad sensor.
     if ( p_crc != n_crc ) {
         return false;
     }
@@ -121,16 +143,16 @@ void MS5803::readSensor() {
     D2 = ms5803CmdAdc( SENSOR_CMD_ADC_D2 + SENSOR_CMD_ADC_256 );    // read uncompensated temperature
 
     // calculate 1st order pressure and temperature correction factors (MS5803 1st order algorithm). 
-    deltaTemp = D2 - sensorCoefficients[5] * pow( 2, 8 );
+    deltaTemp    = D2 - sensorCoefficients[5] * pow( 2, 8 );
     sensorOffset = sensorCoefficients[2] * pow( 2, 16 ) + ( deltaTemp * sensorCoefficients[4] ) / pow( 2, 7 );
-    sensitivity = sensorCoefficients[1] * pow( 2, 15 ) + ( deltaTemp * sensorCoefficients[3] ) / pow( 2, 8 );
+    sensitivity  = sensorCoefficients[1] * pow( 2, 15 ) + ( deltaTemp * sensorCoefficients[3] ) / pow( 2, 8 );
 
     if (_verbose > 1) {
         printf("MS5803 : 0x%08x : D1           : %lu\n", _spi_device, D1);
         printf("MS5803 : 0x%08x : D2           : %lu\n", _spi_device, D2);
-        printf("MS5803 : 0x%08x : deltaTemp    : %f\n", _spi_device, deltaTemp);
-        printf("MS5803 : 0x%08x : sensorOffset : %f\n", _spi_device, sensorOffset);
-        printf("MS5803 : 0x%08x : sensitivity  : %f\n", _spi_device, sensitivity);
+        printf("MS5803 : 0x%08x : deltaTemp    : %f\n" , _spi_device, deltaTemp);
+        printf("MS5803 : 0x%08x : sensorOffset : %f\n" , _spi_device, sensorOffset);
+        printf("MS5803 : 0x%08x : sensitivity  : %f\n" , _spi_device, sensitivity);
     }
     
     // calculate 2nd order pressure and temperature (MS5803 2st order algorithm)
@@ -146,31 +168,11 @@ void MS5803::readSensor() {
         printf("MS5803 : readSensor completed\n");
 }
 
-// Sends a power on reset command to the sensor.
-// Should be done at powerup and maybe on a periodic basis (needs to confirm with testing).
-void MS5803::resetSensor() {
 
-    uint8_t buf_rd[16];
-    uint8_t buf_wr[16];
-
-    int i;
-    for(i=0; i<16; i++) {
-        buf_rd[i] = 0;
-        buf_wr[i] = 0;
-    }
-
-    buf_wr[0] = SENSOR_CMD_RESET ;
-
-    spiSelect  (_spi_device, 0, _verbose-1);
-    spiTxRx    (_spi_device, buf_wr, buf_rd, 1, _verbose-1);
-    spiDeselect(_spi_device, _verbose-1);
-
-    if (_verbose > 1)
-        printf("MS5803 : resetSensor completed\n");
-}
-
-// These sensors have coefficient values stored in ROM that are used to convert the raw temp/pressure data into degrees and mbars.
-// This method reads the coefficient at the index value passed.  Valid values are 0-7. See datasheet for more info.
+// These sensors have coefficient values stored in ROM that are used to convert
+// the raw temp/pressure data into degrees and mbars. This method reads the
+// coefficient at the index value passed.  Valid values are 0-7. 
+// See datasheet for more info.
 unsigned int MS5803::ms5803ReadCoefficient(uint8_t index) {
 
     unsigned int result = 0;   // result to return
@@ -233,7 +235,7 @@ unsigned char MS5803::ms5803CRC4(unsigned int n_prom[]) {
 }
 
 // Use this method to send commands to the sensor.  Pretty much just used to read the pressure and temp data.
-unsigned long MS5803::ms5803CmdAdc(char cmd) {
+unsigned long MS5803::ms5803CmdAdc(uint8_t cmd) {
 
     unsigned int result = 0;
     
@@ -252,23 +254,13 @@ unsigned long MS5803::ms5803CmdAdc(char cmd) {
     spiTxRx    (_spi_device, buf_wr, buf_rd, 3, _verbose-1);
     spiDeselect(_spi_device, _verbose-1);
 
-    switch ( cmd & 0x0f )
-    {
-        case SENSOR_CMD_ADC_256 :
-            usleep(625);
-            break;
-        case SENSOR_CMD_ADC_512 :
-            usleep(1250);
-            break;
-        case SENSOR_CMD_ADC_1024:
-            usleep(2500);
-            break;
-        case SENSOR_CMD_ADC_2048:
-            usleep(5000);
-            break;
-        case SENSOR_CMD_ADC_4096:
-            usleep(10000);
-            break;
+    switch ( cmd & 0x0f ) {
+        case SENSOR_CMD_ADC_256  : usleep(625);   break;
+        case SENSOR_CMD_ADC_512  : usleep(1250);  break;
+        case SENSOR_CMD_ADC_1024 : usleep(2500);  break;
+        case SENSOR_CMD_ADC_2048 : usleep(5000);  break;
+        case SENSOR_CMD_ADC_4096 : usleep(10000); break;
+        default:                                  break;
     }
 
     for(i=0; i<16; i++) {
