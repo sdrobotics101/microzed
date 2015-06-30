@@ -9,11 +9,16 @@
 #define PSCONTROLLER_H_
 
 #include <thread>
+#include <mutex>
 
 #include "ms5803.h"
 
 #define MS0ADDR 0x00020000
 #define MS1ADDR 0x00030000
+
+#define WATERDENSITY 1000 //in kg/m^3
+#define G 			 9.81 //in m/s^2
+#define CONVERSION   100  //conversion factor from Pa to mBar
 
 class PSController {
 public:
@@ -41,7 +46,10 @@ private:
 	double _avgPressure;
 	double _depth;
 
+	const double _conversionFactor;
+
 	std::thread *_thread;
+	std::mutex _mutex;
 };
 
 #endif /* PSCONTROLLER_H_ */

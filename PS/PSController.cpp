@@ -7,9 +7,11 @@
 
 #include "PSController.h"
 
-PSController::PSController() {
+PSController::PSController() : _conversionFactor((CONVERSION/(G * WATERDENSITY)))
+{
 	initSensors();
-	reset();
+	_avgPressure = 0;
+	_depth = 0;
 }
 
 PSController::~PSController() {
@@ -23,11 +25,13 @@ void PSController::start() {
 }
 
 void PSController::reset() {
+	std::lock_guard<std::mutex> lock(_mutex);
 	_avgPressure = 0;
 	_depth = 0;
 }
 
 double PSController::getDepthInMeters() {
+	std::lock_guard<std::mutex> lock(_mutex);
 	return _depth;
 }
 
@@ -51,11 +55,16 @@ void PSController::initSensors() {
 }
 
 void PSController::pollSensors() {
+	_ms0->readSensor();
+	_ms1->readSensor();
 
+	std::lock_guard<std::mutex> lock(_mutex);
+	_avgPressure = ((_ms0->pressure() + _ms1->pressure()) / 2);
 }
 
 void PSController::calculateDepth() {
-
+	std::lock_guard<std::mutex> lock(_mutex);
+	_depth = _avgPressure * _conversionFactor;
 }
 
 void PSController::run() {
