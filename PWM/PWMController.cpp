@@ -14,9 +14,10 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 _imuController(imuController),
 		  	  	  	  	  	 _psController(psController) {
 	_networkClient->open("192.168.1.21", 8888);
-	_networkClient->start();
-	_imuController->start();
-	_psController->start();
+	_xRotationController.setPIDF(0, 0, 0, 0);
+	_yRotationController.setPIDF(0, 0, 0, 0);
+	_zRotationController.setPIDF(0, 0, 0, 0);
+	_depthController.setPIDF(0, 0, 0, 0);
 	initPWM();
 }
 
@@ -25,6 +26,13 @@ PWMController::~PWMController() {
 }
 
 void PWMController::start() {
+	_networkClient->start();
+	_imuController->start();
+	_psController->start();
+	_xRotationController.start();
+	_yRotationController.start();
+	_zRotationController.start();
+	_depthController.start();
 	run();
 }
 

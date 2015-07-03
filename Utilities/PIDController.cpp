@@ -42,6 +42,13 @@ void PIDController::reset() {
 	_output = 0;
 }
 
+void PIDController::setPIDF(double p, double i, double d, double f) {
+	_p = p;
+	_i = i;
+	_d = d;
+	_f = f;
+}
+
 void PIDController::setP(double p) {
 	_p = p;
 }

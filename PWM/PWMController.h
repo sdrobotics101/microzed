@@ -13,6 +13,7 @@
 #include "../Network/NetworkClient.hpp"
 #include "../IMU/IMUController.h"
 #include "../PS/PSController.h"
+#include "../Utilities/PIDController.h"
 
 #define PWMADDR 0x00010000
 
@@ -37,6 +38,11 @@ private:
 	NetworkClient *_networkClient;
 	IMUController *_imuController;
 	PSController *_psController;
+
+	PIDController _xRotationController;
+	PIDController _yRotationController;
+	PIDController _zRotationController;
+	PIDController _depthController;
 
 	PWM *_pwm;
 

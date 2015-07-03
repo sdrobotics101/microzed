@@ -21,6 +21,7 @@ public:
 	void start();
 	void reset();
 
+	void setPIDF(double p, double i, double d, double f);
 	void setP(double p);
 	void setI(double i);
 	void setD(double d);
