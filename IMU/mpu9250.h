@@ -19,6 +19,18 @@ public:
               double *mx, double *my, double *mz,
               double *temp);
             
+    void read_raw(int16_t *ax, int16_t *ay, int16_t *az,
+    			  int16_t *gx, int16_t *gy, int16_t *gz,
+    			  int16_t *mx, int16_t *my, int16_t *mz);
+
+    void read_robot(double *ax, double *ay, double *az,
+    				double *gx, double *gy, double *gz,
+    			    double *mx, double *my, double *mz);
+
+    void read_robot_raw(int16_t *ax, int16_t *ay, int16_t *az,
+    					int16_t *gx, int16_t *gy, int16_t *gz,
+    					int16_t *mx, int16_t *my, int16_t *mz);
+
     unsigned int set_gyro_scale(uint8_t scale);
     unsigned int set_accl_scale(uint8_t scale);
 

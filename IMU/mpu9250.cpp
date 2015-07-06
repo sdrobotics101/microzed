@@ -109,7 +109,7 @@ bool MPU9250::init(uint8_t sample_rate_div, uint8_t low_pass_filter)
         .autoSlaveSelect = false};
 
     if (!spiInit(_spi_device, &spi_init, _verbose)) {
-        printf("MS5803 : ERROR: FAILED TO INIT SPI DEVICE : 0x%08x\n", _spi_device);
+        printf("MPU9250 : ERROR: FAILED TO INIT SPI DEVICE : 0x%08x\n", _spi_device);
         return false;
     }
 
@@ -247,7 +247,7 @@ void MPU9250::read_gyro()
         bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
         data=(double)bit_data;
         gyro_val[i]=data/gyro_div;
-    }
+}
 
 }
 
@@ -400,4 +400,169 @@ void MPU9250::read(double *ax, double *ay, double *az,
 
     *temp = temp_val;
 }
+
+void MPU9250::read_raw(int16_t *ax, int16_t *ay, int16_t *az,
+					   int16_t *gx, int16_t *gy, int16_t *gz,
+					   int16_t *mx, int16_t *my, int16_t *mz) {
+    uint8_t response[21];
+    int16_t bit_data;
+    int16_t accl_raw[3];
+    int16_t gyro_raw[3];
+    int16_t magn_raw[3];
+    int i;
+
+    //Send I2C command at first
+    wr_mp9250(MPUREG_I2C_SLV0_ADDR,AK8963_I2C_ADDR|READ_FLAG); //Set the I2C slave addres of AK8963 and set for read.
+    wr_mp9250(MPUREG_I2C_SLV0_REG, AK8963_HXL); //I2C slave 0 register address from where to begin data transfer
+    wr_mp9250(MPUREG_I2C_SLV0_CTRL, 0x87); //Read 7 bytes from the magnetometer
+    //must start your read from AK8963A register 0x03 and read seven bytes so that upon read of ST2 register 0x09 the AK8963A will unlatch the data registers for the next measurement.
+
+    usleep(7*300);
+
+    rd_mp9250_mult(MPUREG_ACCEL_XOUT_H,response,21);
+
+    // Get accelerometer value
+    for(i=0; i<3; i++) {
+        bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
+        accl_raw[i]=bit_data;
+    }
+
+    //Get gyroscop value
+    for(i=4; i<7; i++) {
+        bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
+        gyro_raw[i-4]=bit_data;
+    }
+
+    //Get Magnetometer value
+    for(i=7; i<10; i++) {
+        bit_data=((int16_t)response[i*2+1]<<8)|response[i*2];
+        magn_raw[i-7]=bit_data;
+    }
+
+    *ax = accl_raw[0];
+    *ay = accl_raw[1];
+    *az = accl_raw[2];
+
+    *gx = gyro_raw[0];
+    *gy = gyro_raw[1];
+    *gz = gyro_raw[2];
+
+    *mx = magn_raw[0];
+    *my = magn_raw[1];
+    *mz = magn_raw[2];
+}
+
+void MPU9250::read_robot(double *ax, double *ay, double *az,
+    			double *gx, double *gy, double *gz,
+    			double *mx, double *my, double *mz) {
+	uint8_t response[21];
+	int16_t bit_data;
+	double data;
+	int i;
+
+	//Send I2C command at first
+	wr_mp9250(MPUREG_I2C_SLV0_ADDR,AK8963_I2C_ADDR|READ_FLAG); //Set the I2C slave addres of AK8963 and set for read.
+	wr_mp9250(MPUREG_I2C_SLV0_REG, AK8963_HXL); //I2C slave 0 register address from where to begin data transfer
+	wr_mp9250(MPUREG_I2C_SLV0_CTRL, 0x87); //Read 7 bytes from the magnetometer
+	//must start your read from AK8963A register 0x03 and read seven bytes so that upon read of ST2 register 0x09 the AK8963A will unlatch the data registers for the next measurement.
+
+	usleep(7*300);
+
+	rd_mp9250_mult(MPUREG_ACCEL_XOUT_H,response,21);
+
+	// Get accelerometer value
+	for(i=0; i<3; i++) {
+	    bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
+	    data=(double)bit_data;
+	    accl_val[i]=data/accl_div;
+	}
+
+	//Get gyroscop value
+	for(i=4; i<7; i++) {
+	    bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
+	    data=(double)bit_data;
+	    gyro_val[i-4]=data/gyro_div;
+	}
+
+	//Get Magnetometer value
+	for(i=7; i<10; i++) {
+	    bit_data=((int16_t)response[i*2+1]<<8)|response[i*2];
+	    data=(double)bit_data;
+	    magn_val[i-7]=data*magn_asa[i-7];
+	}
+
+	*ax = -accl_val[2];
+	*ay = accl_val[0];
+	*az = accl_val[1];
+
+	*gx = gyro_val[2];
+	*gy = -gyro_val[0];
+	*gz = -gyro_val[1];
+
+	*mx = -magn_val[2];
+	*my = -magn_val[1];
+	*mz = -magn_val[0];
+}
+
+void MPU9250::read_robot_raw(int16_t *ax, int16_t *ay, int16_t *az,
+					   	   	 int16_t *gx, int16_t *gy, int16_t *gz,
+					   	   	 int16_t *mx, int16_t *my, int16_t *mz) {
+    uint8_t response[21];
+    int16_t bit_data;
+    int16_t accl_raw[3];
+    int16_t gyro_raw[3];
+    int16_t magn_raw[3];
+    int i;
+
+    //Send I2C command at first
+    wr_mp9250(MPUREG_I2C_SLV0_ADDR,AK8963_I2C_ADDR|READ_FLAG); //Set the I2C slave addres of AK8963 and set for read.
+    wr_mp9250(MPUREG_I2C_SLV0_REG, AK8963_HXL); //I2C slave 0 register address from where to begin data transfer
+    wr_mp9250(MPUREG_I2C_SLV0_CTRL, 0x87); //Read 7 bytes from the magnetometer
+    //must start your read from AK8963A register 0x03 and read seven bytes so that upon read of ST2 register 0x09 the AK8963A will unlatch the data registers for the next measurement.
+
+    usleep(7*300);
+
+    rd_mp9250_mult(MPUREG_ACCEL_XOUT_H,response,21);
+
+    // Get accelerometer value
+    for(i=0; i<3; i++) {
+        bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
+        accl_raw[i]=bit_data;
+    }
+
+    //Get gyroscop value
+    for(i=4; i<7; i++) {
+        bit_data=((int16_t)response[i*2]<<8)|response[i*2+1];
+        gyro_raw[i-4]=bit_data;
+    }
+
+    //Get Magnetometer value
+    for(i=7; i<10; i++) {
+        bit_data=((int16_t)response[i*2+1]<<8)|response[i*2];
+        magn_raw[i-7]=bit_data;
+    }
+
+    *ax = -accl_raw[2];
+    *ay = accl_raw[0];
+    *az = accl_raw[1];
+
+    *gx = gyro_raw[2];
+    *gy = -gyro_raw[0];
+    *gz = -gyro_raw[1];
+
+    *mx = -magn_raw[2];
+    *my = -magn_raw[1];
+    *mz = -magn_raw[0];
+}
+
+
+
+
+
+
+
+
+
+
+
 
