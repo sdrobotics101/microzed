@@ -157,7 +157,7 @@ double PIDController::calculateOutput(double error) {
 
 double PIDController::calculateOutput() {
 	if (_isContinuous) {
-		if (std::abs(_error) > ((_minInput + _maxInput) / 2)) {
+		if (std::abs(_error) > ((std::abs(_minInput) + std::abs(_maxInput)) / 2)) {
 			if (_error > 0) {
 				_error = _error - _maxInput + _minInput;
 			} else {
