@@ -14,10 +14,26 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 _imuController(imuController),
 		  	  	  	  	  	 _psController(psController) {
 	_networkClient->open("192.168.1.21", 8888);
+
 	_xRotationController.setPIDF(0, 0, 0, 0);
+	_xRotationController.setInputLimits(-180, 180);
+	_xRotationController.setOutputLimits(-100, 100);
+	_xRotationController.setContinuous(true);
+
 	_yRotationController.setPIDF(0, 0, 0, 0);
+	_yRotationController.setInputLimits(-180, 180);
+	_yRotationController.setOutputLimits(-100, 100);
+	_yRotationController.setContinuous(true);
+
 	_zRotationController.setPIDF(0, 0, 0, 0);
+	_zRotationController.setInputLimits(-180, 180);
+	_zRotationController.setOutputLimits(-100, 100);
+	_zRotationController.setContinuous(true);
+
 	_depthController.setPIDF(0, 0, 0, 0);
+	_depthController.setOutputLimits(-100, 100);
+	_depthController.setContinuous(false);
+
 	initPWM();
 }
 
@@ -66,7 +82,58 @@ void PWMController::pollData() {
 }
 
 void PWMController::calculateOutputs() {
+	_linearMotion(XAXIS) = _velX;
+	_linearMotion(YAXIS) = _velY;
+	_linearMotion(ZAXIS) = _depthController.calculateOutput(_depth, _posZ);
 
+	Eigen::AngleAxisd xRotationMatrix(_xAngle, Eigen::Vector3d::UnitX());
+	Eigen::AngleAxisd yRotationMatrix(_yAngle, Eigen::Vector3d::UnitY());
+	Eigen::AngleAxisd zRotationMatrix(_zAngle, Eigen::Vector3d::UnitZ());
+
+	_linearMotion = xRotationMatrix.toRotationMatrix() *
+					yRotationMatrix.toRotationMatrix() *
+					zRotationMatrix.toRotationMatrix() *
+					_linearMotion;
+
+	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(_xAngle, _rotX);
+	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(_yAngle, _rotY);
+	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(_zAngle, _rotZ);
+
+	_pwmOutputs[MXF1] = _linearMotion(XAXIS);
+	_pwmOutputs[MXF2] = _linearMotion(XAXIS);
+	_pwmOutputs[MXF3] = _linearMotion(XAXIS);
+	_pwmOutputs[MXF4] = _linearMotion(XAXIS);
+
+	_pwmOutputs[MXR1] = -_linearMotion(XAXIS);
+	_pwmOutputs[MXR2] = -_linearMotion(XAXIS);
+	_pwmOutputs[MXR3] = -_linearMotion(XAXIS);
+	_pwmOutputs[MXR4] = -_linearMotion(XAXIS);
+
+	_pwmOutputs[MYF1] = _linearMotion(YAXIS);
+	_pwmOutputs[MYF2] = _linearMotion(YAXIS);
+	_pwmOutputs[MYF3] = _linearMotion(YAXIS);
+	_pwmOutputs[MYF4] = _linearMotion(YAXIS);
+
+	_pwmOutputs[MYR1] = -_linearMotion(YAXIS);
+	_pwmOutputs[MYR2] = -_linearMotion(YAXIS);
+	_pwmOutputs[MYR3] = -_linearMotion(YAXIS);
+	_pwmOutputs[MYR4] = -_linearMotion(YAXIS);
+
+	_pwmOutputs[MZF1] = _linearMotion(ZAXIS);
+	_pwmOutputs[MZF2] = _linearMotion(ZAXIS);
+	_pwmOutputs[MZF3] = _linearMotion(ZAXIS);
+	_pwmOutputs[MZF4] = _linearMotion(ZAXIS);
+
+	_pwmOutputs[MZR1] = -_linearMotion(ZAXIS);
+	_pwmOutputs[MZR2] = -_linearMotion(ZAXIS);
+	_pwmOutputs[MZR3] = -_linearMotion(ZAXIS);
+	_pwmOutputs[MZR4] = -_linearMotion(ZAXIS);
+
+	for(int i = 0;i < 24;i++) {
+		if (_pwmOutputs[i] < 0) {
+			_pwmOutputs[i] = 0;
+		}
+	}
 }
 
 void PWMController::writeOutputs() {
