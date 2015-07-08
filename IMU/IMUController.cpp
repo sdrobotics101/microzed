@@ -7,20 +7,29 @@
 
 #include "IMUController.h"
 
-IMUController::IMUController() {
+IMUController::IMUController(uint32_t mpu0Addr,
+		  	  	  	  	  	 uint32_t mpu1Addr,
+		  	  	  	  	  	 double combine,
+		  	  	  	  	  	 Eigen::Vector3d mpu0AccBias,
+		  	  	  	  	  	 Eigen::Vector3d mpu1AccBias,
+		  	  	  	  	  	 Eigen::Vector3d mpu0GyroBias,
+		  	  	  	  	  	 Eigen::Vector3d mpu1GyroBias,
+		  	  	  	  	  	 Eigen::Vector3d mpu0MagBias,
+		  	  	  	  	  	 Eigen::Vector3d mpu1MagBias,
+		  	  	  	  	  	 Eigen::Matrix3d mpu0MagTransform,
+		  	  	  	  	  	 Eigen::Matrix3d mpu1MagTransform) :
+		  	  	  	  	  	 _mpu0Addr(mpu0Addr),
+		  	  	  	  	  	 _mpu1Addr(mpu1Addr),
+		  	  	  	  	  	 _combine(combine),
+		  	  	  	  	  	 _mpu0AccBias(mpu0AccBias),
+		  	  	  	  	  	 _mpu1AccBias(mpu1AccBias),
+		  	  	  	  	  	 _mpu0GyroBias(mpu0GyroBias),
+		  	  	  	  	  	 _mpu1GyroBias(mpu1GyroBias),
+		  	  	  	  	  	 _mpu0MagBias(mpu0MagBias),
+		  	  	  	  	  	 _mpu1MagBias(mpu1MagBias),
+		  	  	  	  	  	 _mpu0MagTransform(mpu0MagTransform),
+		  	  	  	  	  	 _mpu1MagTransform(mpu1MagTransform) {
 	initSensors();
-	_mpu0GyroBias << MPU0GYROXBIAS, MPU0GYROYBIAS, MPU0GYROZBIAS;
-	_mpu1GyroBias << MPU1GYROXBIAS, MPU1GYROYBIAS, MPU1GYROZBIAS;
-
-	_mpu0MagTransform << MPU0TRANSFORM00, MPU0TRANSFORM01, MPU0TRANSFORM02,
-						 MPU0TRANSFORM10, MPU0TRANSFORM11, MPU0TRANSFORM12,
-						 MPU0TRANSFORM20, MPU0TRANSFORM21, MPU0TRANSFORM22;
-	_mpu1MagTransform << MPU1TRANSFORM00, MPU1TRANSFORM01, MPU1TRANSFORM02,
-						 MPU1TRANSFORM10, MPU1TRANSFORM11, MPU1TRANSFORM12,
-					     MPU1TRANSFORM20, MPU1TRANSFORM21, MPU1TRANSFORM22;
-
-	_mpu0MagBias << MPU0MAGXBIAS, MPU0MAGYBIAS, MPU0MAGZBIAS;
-	_mpu1MagBias << MPU1MAGXBIAS, MPU1MAGYBIAS, MPU1MAGZBIAS;
 
 	_mpu0AccData.Zero();
 	_mpu0GyroData.Zero();
@@ -102,8 +111,8 @@ MPU9250* IMUController::getMPU1() {
 }
 
 void IMUController::initSensors() {
-	_mpu0 = new MPU9250(MPU0ADDR);
-	_mpu1 = new MPU9250(MPU1ADDR);
+	_mpu0 = new MPU9250(_mpu0Addr);
+	_mpu1 = new MPU9250(_mpu1Addr);
 
 	_mpu0->init(0,0);
 	_mpu1->init(0,0);
@@ -163,7 +172,7 @@ void IMUController::calculateOrientation() {
 
 	if (_useGyro) {
 		_gyroAngles = _combinedAngles + (_avgGyroData * _timer.dt());
-		_combinedAngles = (COMBINE * _gyroAngles) + ((1-COMBINE) * _accMagAngles);
+		_combinedAngles = (_combine * _gyroAngles) + ((1-_combine) * _accMagAngles);
 	} else {
 		_combinedAngles = _accMagAngles;
 		_useGyro = true;

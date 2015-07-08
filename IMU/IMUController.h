@@ -17,11 +17,6 @@
 #include "mpu9250.h"
 #include "../Utilities/Timer.h"
 
-#define MPU0ADDR 0x00040000
-#define MPU1ADDR 0x00050000
-
-#define COMBINE 0.8
-
 #define MPU0TRANSFORM00 1.943
 #define MPU0TRANSFORM01 -0.014
 #define MPU0TRANSFORM02 0.141
@@ -64,7 +59,17 @@
 
 class IMUController {
 public:
-	IMUController();
+	IMUController(uint32_t mpu0Addr,
+				  uint32_t mpu1Addr,
+				  double combine,
+				  Eigen::Vector3d mpu0AccBias,
+				  Eigen::Vector3d mpu1AccBias,
+				  Eigen::Vector3d mpu0GyroBias,
+				  Eigen::Vector3d mpu1GyroBias,
+				  Eigen::Vector3d mpu0MagBias,
+				  Eigen::Vector3d mpu1MagBias,
+				  Eigen::Matrix3d mpu0MagTransform,
+				  Eigen::Matrix3d mpu1MagTransform);
 	virtual ~IMUController();
 
 	void start();
@@ -85,6 +90,8 @@ private:
 
 	void run();
 
+	const uint32_t _mpu0Addr;
+	const uint32_t _mpu1Addr;
 	MPU9250 *_mpu0;
 	MPU9250 *_mpu1;
 
@@ -99,6 +106,9 @@ private:
 	Eigen::Vector3d _avgAccData;
 	Eigen::Vector3d _avgGyroData;
 	Eigen::Vector3d _avgMagData;
+
+	Eigen::Vector3d _mpu0AccBias;
+	Eigen::Vector3d _mpu1AccBias;
 
 	Eigen::Vector3d _mpu0GyroBias;
 	Eigen::Vector3d _mpu1GyroBias;
@@ -116,6 +126,7 @@ private:
 	Eigen::Vector3d _combinedAngles;
 
 	bool _useGyro;
+	double _combine;
 
 	Timer _timer;
 
