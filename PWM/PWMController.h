@@ -49,11 +49,32 @@
 #define MZR3 22
 #define MZR4 23
 
+#define PWMMAXOUTPUT 100
+#define PWMMINOUTPUT -100
+
 class PWMController {
 public:
 	PWMController(NetworkClient *networkClient,
 				  IMUController *imuController,
-				  PSController *psController);
+				  PSController *psController,
+				  uint32_t pwmAddr,
+				  double combinerRatio,
+				  double xP,
+				  double xI,
+				  double xD,
+				  double xF,
+				  double yP,
+				  double yI,
+				  double yD,
+				  double yF,
+				  double zP,
+				  double zI,
+				  double zD,
+				  double zF,
+				  double dP,
+				  double dI,
+				  double dD,
+				  double dF);
 	virtual ~PWMController();
 
 	void start();
@@ -64,6 +85,8 @@ private:
 	void pollData();
 	void calculateOutputs();
 	void writeOutputs();
+
+	double combineMotion(double linear, double rotational1, double rotational2);
 
 	void run();
 
@@ -77,6 +100,8 @@ private:
 	PIDController _depthController;
 
 	PWM *_pwm;
+	const uint32_t _pwmAddr;
+	uint32_t _pwmMap[24];
 
 	double _velX;
 	double _velY;
@@ -91,6 +116,7 @@ private:
 
 	Eigen::Vector3d _linearMotion;
 	Eigen::Vector3d _rotationalMotion;
+	const double _combinerRatio;
 
 	double _pwmOutputs[24];
 };

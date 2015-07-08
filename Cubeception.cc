@@ -16,21 +16,12 @@
  *
  */
 
-#include <stdio.h>
-
-#include "Utilities/regio.h"
-#include "IMU/IMUController.h"
-#include "PS/PSController.h"
-#include "PWM/PWMController.h"
-#include "Network/NetworkClient.hpp"
+#include "Cubeception.h"
 
 int main(int argc, char **argv)
 {
-	NetworkClient networkClient;
-	IMUController imuController;
-	PSController psController;
-	PWMController pwmController(&networkClient, &imuController, &psController);
-	pwmController.start();
+	Cubeception cubeception("config.ini");
+	cubeception.start();
     return (0);
 }
 

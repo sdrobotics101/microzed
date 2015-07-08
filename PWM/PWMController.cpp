@@ -9,30 +9,52 @@
 
 PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 IMUController *imuController,
-		  	  	  	  	  	 PSController *psController) :
+		  	  	  	  	  	 PSController *psController,
+		  	  	  	  	  	 uint32_t pwmAddr,
+		  	  	  	  	  	 double combinerRatio,
+		  	  	  	  	  	 double xP,
+		  	  	  	  	  	 double xI,
+		  	  	  	  	  	 double xD,
+		  	  	  	  	  	 double xF,
+		  	  	  	  	  	 double yP,
+		  	  	  	  	  	 double yI,
+		  	  	  	  	  	 double yD,
+		  	  	  	  	  	 double yF,
+		  	  	  	  	  	 double zP,
+		  	  	  	  	  	 double zI,
+		  	  	  	  	  	 double zD,
+		  	  	  	  	  	 double zF,
+		  	  	  	  	  	 double dP,
+		  	  	  	  	  	 double dI,
+		  	  	  	  	  	 double dD,
+		  	  	  	  	  	 double dF) :
 		  	  	  	  	  	 _networkClient(networkClient),
 		  	  	  	  	  	 _imuController(imuController),
-		  	  	  	  	  	 _psController(psController) {
-	_networkClient->open("192.168.1.21", 8888);
-
-	_xRotationController.setPIDF(0, 0, 0, 0);
+		  	  	  	  	  	 _psController(psController),
+		  	  	  	  	  	 _pwmAddr(pwmAddr),
+		  	  	  	  	  	 _combinerRatio(combinerRatio) {
+	_xRotationController.setPIDF(xP, xI, xD, xF);
 	_xRotationController.setInputLimits(-180, 180);
-	_xRotationController.setOutputLimits(-100, 100);
+	_xRotationController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_xRotationController.setContinuous(true);
 
-	_yRotationController.setPIDF(0, 0, 0, 0);
+	_yRotationController.setPIDF(yP, yI, yD, yF);
 	_yRotationController.setInputLimits(-180, 180);
-	_yRotationController.setOutputLimits(-100, 100);
+	_yRotationController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_yRotationController.setContinuous(true);
 
-	_zRotationController.setPIDF(0, 0, 0, 0);
+	_zRotationController.setPIDF(zP, zI, zD, zF);
 	_zRotationController.setInputLimits(-180, 180);
-	_zRotationController.setOutputLimits(-100, 100);
+	_zRotationController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_zRotationController.setContinuous(true);
 
-	_depthController.setPIDF(0, 0, 0, 0);
-	_depthController.setOutputLimits(-100, 100);
+	_depthController.setPIDF(dP, dI, dD, dF);
+	_depthController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_depthController.setContinuous(false);
+
+	for (int i = 0;i < 24;i++) {
+		_pwmOutputs[i] = 0;
+	}
 
 	initPWM();
 }
@@ -42,9 +64,6 @@ PWMController::~PWMController() {
 }
 
 void PWMController::start() {
-	_networkClient->start();
-	_imuController->start();
-	_psController->start();
 	_xRotationController.start();
 	_yRotationController.start();
 	_zRotationController.start();
@@ -58,14 +77,9 @@ void PWMController::stop() {
 
 void PWMController::initPWM() {
 	_pwm = new PWM(PWMADDR);
-	uint32_t map[24] = {0, 1, 2, 3,
-						4, 5, 6, 7,
-						8, 9, 10, 11,
-						12, 13, 14, 15,
-						16, 17, 18, 19,
-						20, 21, 22, 23};
-	_pwm->setMap(map);
+	_pwm->setMap(_pwmMap);
 	_pwm->enable();
+	_pwm->setDuty(_pwmOutputs);
 }
 
 void PWMController::pollData() {
@@ -99,35 +113,83 @@ void PWMController::calculateOutputs() {
 	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(_yAngle, _rotY);
 	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(_zAngle, _rotZ);
 
-	_pwmOutputs[MXF1] = _linearMotion(XAXIS);
-	_pwmOutputs[MXF2] = _linearMotion(XAXIS);
-	_pwmOutputs[MXF3] = _linearMotion(XAXIS);
-	_pwmOutputs[MXF4] = _linearMotion(XAXIS);
+	_pwmOutputs[MXF1] = combineMotion(_linearMotion(XAXIS),
+									  -_rotationalMotion(YAXIS),
+									  _rotationalMotion(ZAXIS));
+	_pwmOutputs[MXF2] = combineMotion(_linearMotion(XAXIS),
+									  _rotationalMotion(YAXIS),
+									  _rotationalMotion(ZAXIS));
+	_pwmOutputs[MXF3] = combineMotion(_linearMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
+	_pwmOutputs[MXF4] = combineMotion(_linearMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
 
-	_pwmOutputs[MXR1] = -_linearMotion(XAXIS);
-	_pwmOutputs[MXR2] = -_linearMotion(XAXIS);
-	_pwmOutputs[MXR3] = -_linearMotion(XAXIS);
-	_pwmOutputs[MXR4] = -_linearMotion(XAXIS);
+	_pwmOutputs[MXR1] = combineMotion(-_linearMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
+	_pwmOutputs[MXR2] = combineMotion(-_linearMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
+	_pwmOutputs[MXR3] = combineMotion(-_linearMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(YAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
+	_pwmOutputs[MXR4] = combineMotion(_linearMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(YAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
 
-	_pwmOutputs[MYF1] = _linearMotion(YAXIS);
-	_pwmOutputs[MYF2] = _linearMotion(YAXIS);
-	_pwmOutputs[MYF3] = _linearMotion(YAXIS);
-	_pwmOutputs[MYF4] = _linearMotion(YAXIS);
+	_pwmOutputs[MYF1] = combineMotion(_linearMotion(YAXIS),
+									  _rotationalMotion(XAXIS),
+									  _rotationalMotion(ZAXIS));
+	_pwmOutputs[MYF2] = combineMotion(_linearMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
+	_pwmOutputs[MYF3] = combineMotion(_linearMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
+	_pwmOutputs[MYF4] = combineMotion(_linearMotion(YAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
 
-	_pwmOutputs[MYR1] = -_linearMotion(YAXIS);
-	_pwmOutputs[MYR2] = -_linearMotion(YAXIS);
-	_pwmOutputs[MYR3] = -_linearMotion(YAXIS);
-	_pwmOutputs[MYR4] = -_linearMotion(YAXIS);
+	_pwmOutputs[MYR1] = combineMotion(-_linearMotion(YAXIS),
+									  -_rotationalMotion(XAXIS),
+									  -_rotationalMotion(ZAXIS));
+	_pwmOutputs[MYR2] = combineMotion(-_linearMotion(YAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(ZAXIS));
+	_pwmOutputs[MYR3] = combineMotion(-_linearMotion(YAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
+	_pwmOutputs[MYR4] = combineMotion(-_linearMotion(YAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
 
-	_pwmOutputs[MZF1] = _linearMotion(ZAXIS);
-	_pwmOutputs[MZF2] = _linearMotion(ZAXIS);
-	_pwmOutputs[MZF3] = _linearMotion(ZAXIS);
-	_pwmOutputs[MZF4] = _linearMotion(ZAXIS);
+	_pwmOutputs[MZF1] = combineMotion(_linearMotion(ZAXIS),
+									  -_rotationalMotion(XAXIS),
+									  -_rotationalMotion(YAXIS));
+	_pwmOutputs[MZF2] = combineMotion(_linearMotion(ZAXIS),
+									  -_rotationalMotion(XAXIS),
+									  _rotationalMotion(YAXIS));
+	_pwmOutputs[MZF3] = combineMotion(_linearMotion(ZAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(YAXIS));
+	_pwmOutputs[MZF4] = combineMotion(_linearMotion(ZAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(YAXIS));
 
-	_pwmOutputs[MZR1] = -_linearMotion(ZAXIS);
-	_pwmOutputs[MZR2] = -_linearMotion(ZAXIS);
-	_pwmOutputs[MZR3] = -_linearMotion(ZAXIS);
-	_pwmOutputs[MZR4] = -_linearMotion(ZAXIS);
+	_pwmOutputs[MZR1] = combineMotion(-_linearMotion(ZAXIS),
+									  _rotationalMotion(XAXIS),
+									  _rotationalMotion(YAXIS));
+	_pwmOutputs[MZR2] = combineMotion(-_linearMotion(ZAXIS),
+									  _rotationalMotion(XAXIS),
+									  -_rotationalMotion(YAXIS));
+	_pwmOutputs[MZR3] = combineMotion(-_linearMotion(ZAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(YAXIS));
+	_pwmOutputs[MZR4] = combineMotion(-_linearMotion(ZAXIS),
+			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
+			  	  	  	  	  	  	  _rotationalMotion(YAXIS));
 
 	for(int i = 0;i < 24;i++) {
 		if (_pwmOutputs[i] < 0) {
@@ -143,6 +205,12 @@ void PWMController::writeOutputs() {
 	_networkClient->get_m2n_standard_packet()->set_orient_y(_yAngle);
 	_networkClient->get_m2n_standard_packet()->set_orient_z(_zAngle);
 	_networkClient->get_m2n_standard_packet()->set_pos_z(_depth);
+}
+
+double PWMController::combineMotion(double linear, double rotational1, double rotational2) {
+	return ((_combinerRatio * linear) +
+			(((1 - _combinerRatio) / 2) * rotational1) +
+			(((1 - _combinerRatio) / 2) * rotational2));
 }
 
 void PWMController::run() {
