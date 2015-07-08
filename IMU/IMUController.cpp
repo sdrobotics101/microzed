@@ -52,7 +52,6 @@ IMUController::~IMUController() {
 
 void IMUController::start() {
 	_thread = new std::thread(&IMUController::run, this);
-	_timer.start();
 }
 
 void IMUController::reset() {
@@ -130,8 +129,8 @@ void IMUController::correctData() {
 	_avgGyroData = _mpu0GyroData + _mpu1GyroData;
 	_avgGyroData /= 2;
 
-	_mpu0MagData -= _mpu0MagBias;
-	_mpu1MagData -= _mpu1MagBias;
+	_mpu0MagData -= (_mpu0MagBias * 0.15);
+	_mpu1MagData -= (_mpu1MagBias * 0.15);
 	_mpu0MagData = _mpu0MagTransform * _mpu0MagData;
 	_mpu1MagData = _mpu1MagTransform * _mpu1MagData;
 
@@ -155,7 +154,11 @@ void IMUController::calculateOrientation() {
 		_accMagAngles(ZAXIS) = atan2((_cross2(1) / cos(_accMagAngles(YAXIS))),
 									 (_cross2(0) / cos(_accMagAngles(YAXIS))));
 
-		_accMagAngles *= (180/M_PI);
+		_accMagAngles *= (-180/M_PI);
+		_accMagAngles(XAXIS) += 180;
+		if (_accMagAngles(XAXIS) > 180) {
+			_accMagAngles(XAXIS) -= 360;
+		}
 	}
 
 	if (_useGyro) {
@@ -168,6 +171,7 @@ void IMUController::calculateOrientation() {
 }
 
 void IMUController::run() {
+	_timer.start();
 	while(1) {
 		pollSensors();
 		correctData();

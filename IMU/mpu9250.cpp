@@ -492,16 +492,16 @@ void MPU9250::read_robot(double *ax, double *ay, double *az,
 	}
 
 	*ax = -accl_val[2];
-	*ay = accl_val[0];
-	*az = accl_val[1];
+	*ay = -accl_val[1];
+	*az = accl_val[0];
 
 	*gx = gyro_val[2];
-	*gy = -gyro_val[0];
-	*gz = -gyro_val[1];
+	*gy = gyro_val[1];
+	*gz = -gyro_val[0];
 
 	*mx = -magn_val[2];
-	*my = -magn_val[1];
-	*mz = -magn_val[0];
+	*my = magn_val[0];
+	*mz = -magn_val[1];
 }
 
 void MPU9250::read_robot_raw(int16_t *ax, int16_t *ay, int16_t *az,
@@ -543,16 +543,16 @@ void MPU9250::read_robot_raw(int16_t *ax, int16_t *ay, int16_t *az,
     }
 
     *ax = -accl_raw[2];
-    *ay = accl_raw[0];
-    *az = accl_raw[1];
+    *ay = -accl_raw[1];
+    *az = accl_raw[0];
 
     *gx = gyro_raw[2];
-    *gy = -gyro_raw[0];
-    *gz = -gyro_raw[1];
+    *gy = gyro_raw[1];
+    *gz = -gyro_raw[0];
 
     *mx = -magn_raw[2];
-    *my = -magn_raw[1];
-    *mz = -magn_raw[0];
+    *my = magn_raw[0];
+    *mz = -magn_raw[1];
 }
 
 

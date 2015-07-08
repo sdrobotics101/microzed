@@ -12,7 +12,7 @@
 
 #include "regio.h"
 
-#define CLOCKADDR 0x000000018
+#define CLOCKADDR 0x00000018
 
 class Timer {
 public:
