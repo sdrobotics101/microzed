@@ -51,11 +51,11 @@ void IMUController::reset() {
 	}
 	_mpu0AccData.Zero();
 	_mpu0GyroData.Zero();
-	_mpu0GyroData.Zero();
+	_mpu0MagData.Zero();
 
 	_mpu1AccData.Zero();
 	_mpu1GyroData.Zero();
-	_mpu1GyroData.Zero();
+	_mpu1MagData.Zero();
 
 	_avgAccData.Zero();
 	_avgGyroData.Zero();
@@ -72,7 +72,7 @@ void IMUController::reset() {
 }
 
 bool IMUController::isRunning() {
-	return _isRunning;
+	return _isThreadRunning;
 }
 
 double IMUController::getXRotation() {
@@ -128,8 +128,8 @@ void IMUController::correctData() {
 	_avgGyroData = _mpu0GyroData + _mpu1GyroData;
 	_avgGyroData /= 2;
 
-	_mpu0MagData -= (_mpu0MagBias * 0.15);
-	_mpu1MagData -= (_mpu1MagBias * 0.15);
+	_mpu0MagData -= (_mpu0MagBias * MAGNETOMETERSCALEFACTOR);
+	_mpu1MagData -= (_mpu1MagBias * MAGNETOMETERSCALEFACTOR);
 	_mpu0MagData = _mpu0MagTransform * _mpu0MagData;
 	_mpu1MagData = _mpu1MagTransform * _mpu1MagData;
 
@@ -175,6 +175,6 @@ void IMUController::run() {
 		pollSensors();
 		correctData();
 		calculateOrientation();
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(IMULOOPTIME));
 	}
 }

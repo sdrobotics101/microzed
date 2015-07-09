@@ -12,8 +12,14 @@
 #define YAXIS 1
 #define ZAXIS 2
 
+#define IMULOOPTIME 10
+#define PSLOOPTIME 10
+#define PWMLOOPTIME 20
+
 #define G 9.81 					//in m/s^2
 #define PA2MBARCONVERSION 100   //conversion factor from Pa to mBar
+
+#define MAGNETOMETERSCALEFACTOR 0.15
 
 #define MXF1 0
 #define MXF2 1

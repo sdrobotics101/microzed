@@ -72,6 +72,10 @@ void PWMController::start() {
 }
 
 void PWMController::stop() {
+	for (int i = 0;i < 24;i++) {
+		_pwmOutputs[i] = 0;
+	}
+	_pwm->setDuty(_pwmOutputs);
 	_pwm->disable();
 }
 
@@ -191,7 +195,7 @@ void PWMController::calculateOutputs() {
 			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
 			  	  	  	  	  	  	  _rotationalMotion(YAXIS));
 
-	for(int i = 0;i < 24;i++) {
+	for (int i = 0;i < 24;i++) {
 		if (_pwmOutputs[i] < 0) {
 			_pwmOutputs[i] = 0;
 		}
@@ -218,6 +222,6 @@ void PWMController::run() {
 		pollData();
 		calculateOutputs();
 		writeOutputs();
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(PWMLOOPTIME));
 	}
 }
