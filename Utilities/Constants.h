@@ -21,6 +21,7 @@
 
 #define MAGNETOMETERSCALEFACTOR 0.15
 
+#define NUMMOTORS 24
 #define MXF1 0
 #define MXF2 1
 #define MXF3 2

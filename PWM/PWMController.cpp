@@ -11,6 +11,7 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 IMUController *imuController,
 		  	  	  	  	  	 PSController *psController,
 		  	  	  	  	  	 uint32_t pwmAddr,
+		  	  	  	  	  	 uint32_t pwmMap[NUMMOTORS],
 		  	  	  	  	  	 double combinerRatio,
 		  	  	  	  	  	 double xP,
 		  	  	  	  	  	 double xI,
@@ -52,7 +53,11 @@ PWMController::PWMController(NetworkClient *networkClient,
 	_depthController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_depthController.setContinuous(false);
 
-	for (int i = 0;i < 24;i++) {
+	for (int i = 0;i < NUMMOTORS;i++) {
+		_pwmMap[i] = pwmMap[i];
+	}
+
+	for (int i = 0;i < NUMMOTORS;i++) {
 		_pwmOutputs[i] = 0;
 	}
 
@@ -72,7 +77,7 @@ void PWMController::start() {
 }
 
 void PWMController::stop() {
-	for (int i = 0;i < 24;i++) {
+	for (int i = 0;i < NUMMOTORS;i++) {
 		_pwmOutputs[i] = 0;
 	}
 	_pwm->setDuty(_pwmOutputs);
@@ -195,7 +200,7 @@ void PWMController::calculateOutputs() {
 			  	  	  	  	  	  	  -_rotationalMotion(XAXIS),
 			  	  	  	  	  	  	  _rotationalMotion(YAXIS));
 
-	for (int i = 0;i < 24;i++) {
+	for (int i = 0;i < NUMMOTORS;i++) {
 		if (_pwmOutputs[i] < 0) {
 			_pwmOutputs[i] = 0;
 		}

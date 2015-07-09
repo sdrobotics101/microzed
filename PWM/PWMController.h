@@ -25,6 +25,7 @@ public:
 				  IMUController *imuController,
 				  PSController *psController,
 				  uint32_t pwmAddr,
+				  uint32_t pwmMap[NUMMOTORS],
 				  double combinerRatio,
 				  double xP,
 				  double xI,
@@ -68,7 +69,7 @@ private:
 
 	PWM *_pwm;
 	const uint32_t _pwmAddr;
-	uint32_t _pwmMap[24];
+	uint32_t _pwmMap[NUMMOTORS];
 
 	double _velX;
 	double _velY;
@@ -85,7 +86,7 @@ private:
 	Eigen::Vector3d _rotationalMotion;
 	const double _combinerRatio;
 
-	double _pwmOutputs[24];
+	double _pwmOutputs[NUMMOTORS];
 };
 
 #endif /* PWMCONTROLLER_H_ */

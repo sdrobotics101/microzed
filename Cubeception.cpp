@@ -112,10 +112,42 @@ void Cubeception::initPSController() {
 }
 
 void Cubeception::initPWMController() {
+	uint32_t pwmMap[24];
+	pwmMap[MXF1] = _iniReader->GetInteger("map", "mxf1", 0);
+	pwmMap[MXF2] = _iniReader->GetInteger("map", "mxf2", 1);
+	pwmMap[MXF3] = _iniReader->GetInteger("map", "mxf3", 2);
+	pwmMap[MXF4] = _iniReader->GetInteger("map", "mxf4", 3);
+
+	pwmMap[MXR1] = _iniReader->GetInteger("map", "mxr1", 4);
+	pwmMap[MXR2] = _iniReader->GetInteger("map", "mxr2", 5);
+	pwmMap[MXR3] = _iniReader->GetInteger("map", "mxr3", 6);
+	pwmMap[MXR4] = _iniReader->GetInteger("map", "mxr4", 7);
+
+	pwmMap[MYF1] = _iniReader->GetInteger("map", "myf1", 8);
+	pwmMap[MYF2] = _iniReader->GetInteger("map", "myf2", 9);
+	pwmMap[MYF3] = _iniReader->GetInteger("map", "myf3", 10);
+	pwmMap[MYF4] = _iniReader->GetInteger("map", "myf4", 11);
+
+	pwmMap[MYR1] = _iniReader->GetInteger("map", "myr1", 12);
+	pwmMap[MYR2] = _iniReader->GetInteger("map", "myr2", 13);
+	pwmMap[MYR3] = _iniReader->GetInteger("map", "myr3", 14);
+	pwmMap[MYR4] = _iniReader->GetInteger("map", "myr4", 15);
+
+	pwmMap[MZF1] = _iniReader->GetInteger("map", "mzf1", 16);
+	pwmMap[MZF2] = _iniReader->GetInteger("map", "mzf2", 17);
+	pwmMap[MZF3] = _iniReader->GetInteger("map", "mzf3", 18);
+	pwmMap[MZF4] = _iniReader->GetInteger("map", "mzf4", 19);
+
+	pwmMap[MZR1] = _iniReader->GetInteger("map", "mzr1", 20);
+	pwmMap[MZR2] = _iniReader->GetInteger("map", "mzr2", 21);
+	pwmMap[MZR3] = _iniReader->GetInteger("map", "mzr3", 22);
+	pwmMap[MZR4] = _iniReader->GetInteger("map", "mzr4", 23);
+
 	_pwmController = new PWMController(_networkClient,
 									   _imuController,
 									   _psController,
 									   _iniReader->GetInteger("pwm", "pwmaddr", 0x00010000),
+									   pwmMap,
 									   _iniReader->GetReal("pwm", "combine", 0.6),
 									   _iniReader->GetReal("pwm", "xp", 0),
 									   _iniReader->GetReal("pwm", "xi", 0),
