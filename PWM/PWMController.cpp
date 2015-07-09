@@ -76,7 +76,7 @@ void PWMController::stop() {
 }
 
 void PWMController::initPWM() {
-	_pwm = new PWM(PWMADDR);
+	_pwm = new PWM(_pwmAddr);
 	_pwm->setMap(_pwmMap);
 	_pwm->enable();
 	_pwm->setDuty(_pwmOutputs);

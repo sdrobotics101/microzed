@@ -16,6 +16,7 @@
 
 #include "mpu9250.h"
 #include "../Utilities/Timer.h"
+#include "../Utilities/Constants.h"
 
 #define MPU0TRANSFORM00 1.943
 #define MPU0TRANSFORM01 -0.014
@@ -52,10 +53,6 @@
 #define MPU1GYROXBIAS -0.0870992
 #define MPU1GYROYBIAS 0.425496
 #define MPU1GYROZBIAS -2.7074
-
-#define XAXIS 0
-#define YAXIS 1
-#define ZAXIS 2
 
 class IMUController {
 public:

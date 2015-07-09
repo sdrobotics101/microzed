@@ -17,40 +17,7 @@
 #include "../IMU/IMUController.h"
 #include "../PS/PSController.h"
 #include "../Utilities/PIDController.h"
-
-#define PWMADDR 0x00010000
-
-#define XAXIS 0
-#define YAXIS 1
-#define ZAXIS 2
-
-#define MXF1 0
-#define MXF2 1
-#define MXF3 2
-#define MXF4 3
-#define MXR1 4
-#define MXR2 5
-#define MXR3 6
-#define MXR4 7
-#define MYF1 8
-#define MYF2 9
-#define MYF3 10
-#define MYF4 11
-#define MYR1 12
-#define MYR2 13
-#define MYR3 14
-#define MYR4 15
-#define MZF1 16
-#define MZF2 17
-#define MZF3 18
-#define MZF4 19
-#define MZR1 20
-#define MZR2 21
-#define MZR3 22
-#define MZR4 23
-
-#define PWMMAXOUTPUT 100
-#define PWMMINOUTPUT -100
+#include "../Utilities/Constants.h"
 
 class PWMController {
 public:

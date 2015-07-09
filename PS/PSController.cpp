@@ -7,8 +7,15 @@
 
 #include "PSController.h"
 
-PSController::PSController() : _conversionFactor((CONVERSION/(G * WATERDENSITY)))
-{
+PSController::PSController(uint32_t ms0Addr,
+		 	 	 	 	   uint32_t ms1Addr,
+		 	 	 	 	   double waterDensity,
+		 	 	 	 	   double atmosphericPressure) :
+		 	 	 	 	   _ms0Addr(ms0Addr),
+		 	 	 	 	   _ms1Addr(ms1Addr),
+		 	 	 	 	   _waterDensity(waterDensity),
+		 	 	 	 	   _atmosphericPressure(atmosphericPressure),
+		 	 	 	 	   _conversionFactor((PA2MBARCONVERSION / (G * _waterDensity))) {
 	initSensors();
 	_avgPressure = 0;
 	_depth = 0;
@@ -44,8 +51,8 @@ MS5803* PSController::getMS1() {
 }
 
 void PSController::initSensors() {
-	_ms0 = new MS5803(MS0ADDR);
-	_ms1 = new MS5803(MS1ADDR);
+	_ms0 = new MS5803(_ms0Addr);
+	_ms1 = new MS5803(_ms1Addr);
 
 	_ms0->resetSensor();
 	_ms1->resetSensor();
@@ -64,7 +71,7 @@ void PSController::pollSensors() {
 
 void PSController::calculateDepth() {
 	std::lock_guard<std::mutex> lock(_mutex);
-	_depth = (_avgPressure - ATMOSPHERE) * _conversionFactor;
+	_depth = (_avgPressure - _atmosphericPressure) * _conversionFactor;
 }
 
 void PSController::run() {

@@ -12,18 +12,14 @@
 #include <mutex>
 
 #include "ms5803.h"
-
-#define MS0ADDR 0x00020000
-#define MS1ADDR 0x00030000
-
-#define WATERDENSITY 1000 //in kg/m^3
-#define G 			 9.81 //in m/s^2
-#define CONVERSION   100  //conversion factor from Pa to mBar
-#define ATMOSPHERE	 1012.414 //in mBar
+#include "../Utilities/Constants.h"
 
 class PSController {
 public:
-	PSController();
+	PSController(uint32_t ms0Addr,
+				 uint32_t ms1Addr,
+				 double waterDensity,
+				 double atmosphericPressure);
 	virtual ~PSController();
 
 	void start();
@@ -41,12 +37,16 @@ private:
 
 	void run();
 
+	const uint32_t _ms0Addr;
+	const uint32_t _ms1Addr;
 	MS5803 *_ms0;
 	MS5803 *_ms1;
 
 	double _avgPressure;
 	double _depth;
 
+	double _waterDensity;
+	double _atmosphericPressure;
 	const double _conversionFactor;
 
 	std::thread *_thread;

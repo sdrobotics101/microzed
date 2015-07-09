@@ -17,6 +17,7 @@
  */
 
 #include "Cubeception.h"
+#include "Cubeception.cpp"
 
 int main(int argc, char **argv)
 {
