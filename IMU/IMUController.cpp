@@ -30,27 +30,8 @@ IMUController::IMUController(uint32_t mpu0Addr,
 		  	  	  	  	  	 _mpu0MagTransform(mpu0MagTransform),
 		  	  	  	  	  	 _mpu1MagTransform(mpu1MagTransform) {
 	initSensors();
-
-	_mpu0AccData.Zero();
-	_mpu0GyroData.Zero();
-	_mpu0GyroData.Zero();
-
-	_mpu1AccData.Zero();
-	_mpu1GyroData.Zero();
-	_mpu1GyroData.Zero();
-
-	_avgAccData.Zero();
-	_avgGyroData.Zero();
-	_avgMagData.Zero();
-
-	_cross1.Zero();
-	_cross2.Zero();
-
-	_accMagAngles.Zero();
-	_gyroAngles.Zero();
-	_combinedAngles.Zero();
-
-	_useGyro = false;
+	_isThreadRunning = false;
+	reset();
 }
 
 IMUController::~IMUController() {
@@ -60,11 +41,14 @@ IMUController::~IMUController() {
 }
 
 void IMUController::start() {
+	_isThreadRunning = true;
 	_thread = new std::thread(&IMUController::run, this);
 }
 
 void IMUController::reset() {
-	std::lock_guard<std::mutex> lock(_mutex);
+	if (_isThreadRunning) {
+		std::lock_guard<std::mutex> lock(_mutex);
+	}
 	_mpu0AccData.Zero();
 	_mpu0GyroData.Zero();
 	_mpu0GyroData.Zero();
@@ -85,6 +69,10 @@ void IMUController::reset() {
 	_combinedAngles.Zero();
 
 	_useGyro = false;
+}
+
+bool IMUController::isRunning() {
+	return _isRunning;
 }
 
 double IMUController::getXRotation() {
@@ -130,6 +118,8 @@ void IMUController::pollSensors() {
 }
 
 void IMUController::correctData() {
+	_mpu0AccData -= _mpu0AccBias;
+	_mpu1AccData -= _mpu1AccBias;
 	_avgAccData = _mpu0AccData + _mpu1AccData;
 	_avgAccData /= 2;
 

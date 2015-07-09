@@ -71,6 +71,7 @@ public:
 
 	void start();
 	void reset();
+	bool isRunning();
 
 	double getXRotation();
 	double getYRotation();
@@ -129,6 +130,7 @@ private:
 
 	std::thread *_thread;
 	std::mutex _mutex;
+	bool _isThreadRunning;
 };
 
 #endif /* IMUCONTROLLER_H_ */

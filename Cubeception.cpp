@@ -34,7 +34,7 @@ void Cubeception::start() {
 void Cubeception::initNetworkClient() {
 	_networkClient = new NetworkClient();
 	_networkClient->open(_iniReader->Get("network", "ipaddr", "192.168.1.21"),
-						 _iniReader->GetInteger("network", "udpport", 8888));
+						 _iniReader->GetInteger("network", "port", 8888));
 }
 
 void Cubeception::initIMUController() {

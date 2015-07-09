@@ -21,7 +21,7 @@
 
 int main(int argc, char **argv)
 {
-	Cubeception cubeception("config.ini");
+	Cubeception cubeception("/usr/local/etc/cubeception.ini");
 	cubeception.start();
     return (0);
 }
