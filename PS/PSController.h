@@ -24,6 +24,7 @@ public:
 
 	void start();
 	void reset();
+	bool isThreadRunning();
 
 	double getDepthInMeters();
 
@@ -51,6 +52,7 @@ private:
 
 	std::thread *_thread;
 	std::mutex _mutex;
+	bool _isThreadRunning;
 };
 
 #endif /* PSCONTROLLER_H_ */

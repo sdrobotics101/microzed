@@ -17,8 +17,8 @@ PSController::PSController(uint32_t ms0Addr,
 		 	 	 	 	   _atmosphericPressure(atmosphericPressure),
 		 	 	 	 	   _conversionFactor((PA2MBARCONVERSION / (G * _waterDensity))) {
 	initSensors();
-	_avgPressure = 0;
-	_depth = 0;
+	_isThreadRunning = false;
+	reset();
 }
 
 PSController::~PSController() {
@@ -28,13 +28,20 @@ PSController::~PSController() {
 }
 
 void PSController::start() {
+	_isThreadRunning = true;
 	_thread = new std::thread(&PSController::run, this);
 }
 
 void PSController::reset() {
-	std::lock_guard<std::mutex> lock(_mutex);
+	if (_isThreadRunning) {
+		std::lock_guard<std::mutex> lock(_mutex);
+	}
 	_avgPressure = 0;
 	_depth = 0;
+}
+
+bool PSController::isThreadRunning() {
+	return _isThreadRunning;
 }
 
 double PSController::getDepthInMeters() {
