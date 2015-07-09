@@ -118,9 +118,9 @@ void PWMController::calculateOutputs() {
 					zRotationMatrix.toRotationMatrix() *
 					_linearMotion;
 
-	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(_xAngle, _rotX);
-	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(_yAngle, _rotY);
-	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(_zAngle, _rotZ);
+	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(-_xAngle, _rotX);
+	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(-_yAngle, _rotY);
+	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(-_zAngle, _rotZ);
 
 	_pwmOutputs[MXF1] = combineMotion(_linearMotion(XAXIS),
 									  -_rotationalMotion(YAXIS),
