@@ -109,18 +109,18 @@ void PWMController::calculateOutputs() {
 	_linearMotion(YAXIS) = _velY;
 	_linearMotion(ZAXIS) = _depthController.calculateOutput(_depth, _posZ);
 
-	Eigen::AngleAxisd xRotationMatrix(_xAngle, Eigen::Vector3d::UnitX());
-	Eigen::AngleAxisd yRotationMatrix(_yAngle, Eigen::Vector3d::UnitY());
-	Eigen::AngleAxisd zRotationMatrix(_zAngle, Eigen::Vector3d::UnitZ());
+	Eigen::AngleAxisd xRotationMatrix(-_xAngle, Eigen::Vector3d::UnitX());
+	Eigen::AngleAxisd yRotationMatrix(-_yAngle, Eigen::Vector3d::UnitY());
+	Eigen::AngleAxisd zRotationMatrix(-_zAngle, Eigen::Vector3d::UnitZ());
 
 	_linearMotion = xRotationMatrix.toRotationMatrix() *
 					yRotationMatrix.toRotationMatrix() *
 					zRotationMatrix.toRotationMatrix() *
 					_linearMotion;
 
-	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(-_xAngle, _rotX);
-	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(-_yAngle, _rotY);
-	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(-_zAngle, _rotZ);
+	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(_xAngle, _rotX);
+	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(_yAngle, _rotY);
+	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(_zAngle, _rotZ);
 
 	_pwmOutputs[MXF1] = combineMotion(_linearMotion(XAXIS),
 									  -_rotationalMotion(YAXIS),
