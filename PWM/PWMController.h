@@ -55,6 +55,7 @@ private:
 	void writeOutputs();
 
 	double combineMotion(double linear, double rotational1, double rotational2);
+	double linearize(int motor, double speed);
 
 	void run();
 

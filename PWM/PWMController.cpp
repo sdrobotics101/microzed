@@ -205,6 +205,10 @@ void PWMController::calculateOutputs() {
 			_pwmOutputs[i] = 0;
 		}
 	}
+
+	for (int i = 0;i < NUMMOTORS;i++) {
+		_pwmOutputs[i] = linearize(i, _pwmOutputs[i]);
+	}
 }
 
 void PWMController::writeOutputs() {
@@ -221,6 +225,42 @@ double PWMController::combineMotion(double linear, double rotational1, double ro
 			(((1 - _combinerRatio) / 2) * rotational1) +
 			(((1 - _combinerRatio) / 2) * rotational2));
 }
+
+double PWMController::linearize(int motor, double speed) {
+
+    /* speed calibration based on slowest motor */
+    double motor_cal[24] = {0.9861, 0.9301, 0.9816, 0.9682,
+                            0.9064, 0.9301, 1.0000, 0.8950,
+                            0.9425, 0.9025, 0.9638, 0.9816,
+                            0.9301, 0.9261, 0.9025, 0.9816,
+                            0.9181, 0.9261, 0.8068, 0.9142,
+                            0.9301, 0.9342, 0.9861, 0.9425};
+
+    /* polynomial coefficients for linearizer curve fit */
+    double poly[3] = {0.003666, -0.659065, 29.217563};
+
+    /* figure out the adjustment based on 2nd order polynomial interpolation */
+    double adj;
+    if (speed < 10.0) {
+        adj = poly[0]*pow(speed, 2.0) + poly[1]*speed + 0.0;
+    }
+    else if (speed < 20.0) {
+        adj = poly[0]*pow(speed, 2.0) + poly[1]*speed + 0.9*poly[2];
+    }
+    else {
+        adj = poly[0]*pow(speed, 2.0) + poly[1]*speed + poly[2];
+    }
+
+    adj += speed;                   /* adjust the current speed */
+    adj *= motor_cal[motor];        /* derate the speed based on slowest motor */
+
+    /* saturate outside {0, 100} interval */
+    if      (adj <   0.0) { adj =   0.0; }
+    else if (adj > 100.0) { adj = 100.0; }
+
+    return (adj);
+}
+
 
 void PWMController::run() {
 	while(1) {
