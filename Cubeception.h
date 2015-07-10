@@ -8,6 +8,7 @@
 #ifndef CUBECEPTION_H_
 #define CUBECEPTION_H_
 
+#include <iostream>
 #include <string>
 
 #include "IMU/IMUController.h"

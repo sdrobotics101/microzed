@@ -98,10 +98,10 @@ void PWMController::pollData() {
 	_rotX = _networkClient->get_n2m_standard_packet()->get_rot_x();
 	_rotY = _networkClient->get_n2m_standard_packet()->get_rot_y();
 	_rotZ = _networkClient->get_n2m_standard_packet()->get_rot_z();
-	_xAngle = _imuController->getXRotation();
-	_yAngle = _imuController->getYRotation();
-	_zAngle = _imuController->getZRotation();
-	_depth = _psController->getDepthInMeters();
+	_xAngle = 0;//_imuController->getXRotation();
+	_yAngle = 0;//_imuController->getYRotation();
+	_zAngle = 0;//_imuController->getZRotation();
+	_depth = 0;//_psController->getDepthInMeters();
 }
 
 void PWMController::calculateOutputs() {
@@ -144,7 +144,7 @@ void PWMController::calculateOutputs() {
 	_pwmOutputs[MXR3] = combineMotion(-_linearMotion(XAXIS),
 			  	  	  	  	  	  	  -_rotationalMotion(YAXIS),
 			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
-	_pwmOutputs[MXR4] = combineMotion(_linearMotion(XAXIS),
+	_pwmOutputs[MXR4] = combineMotion(-_linearMotion(XAXIS),
 			  	  	  	  	  	  	  _rotationalMotion(YAXIS),
 			  	  	  	  	  	  	  _rotationalMotion(ZAXIS));
 
