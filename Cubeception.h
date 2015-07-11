@@ -16,10 +16,7 @@
 #include "PWM/PWMController.h"
 #include "Network/NetworkClient.hpp"
 #include "Utilities/INI/INIReader.h"
-
-#define XAXIS 0
-#define YAXIS 1
-#define ZAXIS 2
+#include "Utilities/Constants.h"
 
 class Cubeception {
 public:
