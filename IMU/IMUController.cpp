@@ -177,12 +177,6 @@ void IMUController::run() {
 		pollSensors();
 		correctData();
 		calculateOrientation();
-
-		std::cout << std::endl;
-		std::cout << "X: " << _combinedAngles(XAXIS) << std::endl;
-		std::cout << "Y: " << _combinedAngles(YAXIS) << std::endl;
-		std::cout << "Z: " << _combinedAngles(ZAXIS) << std::endl;
-
 		std::this_thread::sleep_for(std::chrono::milliseconds(IMULOOPTIME));
 	}
 }

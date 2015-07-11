@@ -119,8 +119,8 @@ void PWMController::calculateOutputs() {
 					zRotationMatrix.toRotationMatrix() *
 					_linearMotion;
 
-	_rotationalMotion(XAXIS) = 0;//_xRotationController.calculateOutput(_xAngle, _rotX);
-	_rotationalMotion(YAXIS) = 0;//_yRotationController.calculateOutput(_yAngle, _rotY);
+	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(_xAngle, _rotX);
+	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(_yAngle, _rotY);
 	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(_zAngle, _rotZ);
 
 	_pwmOutputs[MXF1] = combineMotion(_linearMotion(XAXIS),
@@ -219,6 +219,11 @@ void PWMController::writeOutputs() {
 	_networkClient->get_m2n_standard_packet()->set_orient_y(_yAngle);
 	_networkClient->get_m2n_standard_packet()->set_orient_z(_zAngle);
 	_networkClient->get_m2n_standard_packet()->set_pos_z(_depth);
+
+	std::cout << "X: " << _xAngle << std::endl;
+	std::cout << "Y: " << _yAngle << std::endl;
+	std::cout << "Z: " << _zAngle << std::endl;
+	std::cout << "D: " << _depth << std::endl;
 }
 
 double PWMController::combineMotion(double linear, double rotational1, double rotational2) {
