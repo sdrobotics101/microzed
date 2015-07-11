@@ -32,6 +32,7 @@ IMUController::IMUController(uint32_t mpu0Addr,
 	initSensors();
 	_isThreadRunning = false;
 	reset();
+	std::cout << "IMUController initialized" << std::endl;
 }
 
 IMUController::~IMUController() {
@@ -171,10 +172,17 @@ void IMUController::calculateOrientation() {
 
 void IMUController::run() {
 	_timer.start();
+	std::cout << "IMUController started" << std::endl;
 	while(1) {
 		pollSensors();
 		correctData();
 		calculateOrientation();
+
+		std::cout << std::endl;
+		std::cout << "X: " << _combinedAngles(XAXIS) << std::endl;
+		std::cout << "Y: " << _combinedAngles(YAXIS) << std::endl;
+		std::cout << "Z: " << _combinedAngles(ZAXIS) << std::endl;
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(IMULOOPTIME));
 	}
 }

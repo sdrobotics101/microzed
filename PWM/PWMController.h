@@ -8,6 +8,7 @@
 #ifndef PWMCONTROLLER_H_
 #define PWMCONTROLLER_H_
 
+#include <iostream>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 

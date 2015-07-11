@@ -19,6 +19,7 @@ PSController::PSController(uint32_t ms0Addr,
 	initSensors();
 	_isThreadRunning = false;
 	reset();
+	std::cout << "PSController initialized" << std::endl;
 }
 
 PSController::~PSController() {
@@ -82,6 +83,7 @@ void PSController::calculateDepth() {
 }
 
 void PSController::run() {
+	std::cout << "PSController started" << std::endl;
 	while(1) {
 		pollSensors();
 		calculateDepth();

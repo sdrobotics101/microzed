@@ -18,16 +18,11 @@ Cubeception::Cubeception(std::string configFile) {
 	std::cout << "Beginning Initialization" << std::endl;
 
 	initNetworkClient();
-	std::cout << "Initialized Network Client" << std::endl;
+	std::cout << "Network Client initialized" << std::endl;
 
 	initIMUController();
-	std::cout << "Initialized IMU Controller" << std::endl;
-
 	initPSController();
-	std::cout <<"Initialized PS Controller" << std::endl;
-
 	initPWMController();
-	std::cout << "Initialized PWM Controller" << std::endl;
 
 	std::cout << "Finished Initialization" << std::endl;
 }
@@ -44,18 +39,11 @@ void Cubeception::start() {
 	std::cout << "Starting" << std::endl;
 
 	_networkClient->start();
-	std::cout << "Network Client Started" << std::endl;
+	std::cout << "Network Client started" << std::endl;
 
 	_imuController->start();
-	std::cout << "IMU Controller Started" << std::endl;
-
 	_psController->start();
-	std::cout << "PS Controller Started" << std::endl;
-
 	_pwmController->start();
-	std::cout << "PWM Controller Started" << std::endl;
-
-	std::cout << "Completed Startup" << std::endl;
 }
 
 void Cubeception::initNetworkClient() {
@@ -120,7 +108,7 @@ void Cubeception::initIMUController() {
 
 	_imuController = new IMUController(_iniReader->GetInteger("imu", "mpu0addr", 0x00040000),
 									   _iniReader->GetInteger("imu", "mpu1addr", 0x00050000),
-									   _iniReader->GetReal("imu", "combine", 0.8),
+									   _iniReader->GetReal("imu", "imucombine", 0.8),
 									   mpu0AccBias,
 									   mpu1AccBias,
 									   mpu0GyroBias,
@@ -175,7 +163,7 @@ void Cubeception::initPWMController() {
 									   _psController,
 									   _iniReader->GetInteger("pwm", "pwmaddr", 0x00010000),
 									   pwmMap,
-									   _iniReader->GetReal("pwm", "combine", 0.6),
+									   _iniReader->GetReal("pwm", "pwmcombine", 0.6),
 									   _iniReader->GetReal("pwm", "xp", 0),
 									   _iniReader->GetReal("pwm", "xi", 0),
 									   _iniReader->GetReal("pwm", "xd", 0),

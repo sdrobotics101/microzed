@@ -8,6 +8,7 @@
 #ifndef PSCONTROLLER_H_
 #define PSCONTROLLER_H_
 
+#include <iostream>
 #include <thread>
 #include <mutex>
 

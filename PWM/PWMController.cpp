@@ -62,6 +62,7 @@ PWMController::PWMController(NetworkClient *networkClient,
 	}
 
 	initPWM();
+	std::cout << "PWMController initialized" << std::endl;
 }
 
 PWMController::~PWMController() {
@@ -98,10 +99,10 @@ void PWMController::pollData() {
 	_rotX = _networkClient->get_n2m_standard_packet()->get_rot_x();
 	_rotY = _networkClient->get_n2m_standard_packet()->get_rot_y();
 	_rotZ = _networkClient->get_n2m_standard_packet()->get_rot_z();
-	_xAngle = 0;//_imuController->getXRotation();
-	_yAngle = 0;//_imuController->getYRotation();
-	_zAngle = 0;//_imuController->getZRotation();
-	_depth = 0;//_psController->getDepthInMeters();
+	_xAngle = _imuController->getXRotation();
+	_yAngle = _imuController->getYRotation();
+	_zAngle = _imuController->getZRotation();
+	_depth = _psController->getDepthInMeters();
 }
 
 void PWMController::calculateOutputs() {
@@ -109,17 +110,17 @@ void PWMController::calculateOutputs() {
 	_linearMotion(YAXIS) = _velY;
 	_linearMotion(ZAXIS) = _depthController.calculateOutput(_depth, _posZ);
 
-	Eigen::AngleAxisd xRotationMatrix(-_xAngle, Eigen::Vector3d::UnitX());
-	Eigen::AngleAxisd yRotationMatrix(-_yAngle, Eigen::Vector3d::UnitY());
-	Eigen::AngleAxisd zRotationMatrix(-_zAngle, Eigen::Vector3d::UnitZ());
+	Eigen::AngleAxisd xRotationMatrix(-_xAngle * (M_PI/180), Eigen::Vector3d::UnitX());
+	Eigen::AngleAxisd yRotationMatrix(-_yAngle * (M_PI/180), Eigen::Vector3d::UnitY());
+	Eigen::AngleAxisd zRotationMatrix(-_zAngle * (M_PI/180), Eigen::Vector3d::UnitZ());
 
 	_linearMotion = xRotationMatrix.toRotationMatrix() *
 					yRotationMatrix.toRotationMatrix() *
 					zRotationMatrix.toRotationMatrix() *
 					_linearMotion;
 
-	_rotationalMotion(XAXIS) = _xRotationController.calculateOutput(_xAngle, _rotX);
-	_rotationalMotion(YAXIS) = _yRotationController.calculateOutput(_yAngle, _rotY);
+	_rotationalMotion(XAXIS) = 0;//_xRotationController.calculateOutput(_xAngle, _rotX);
+	_rotationalMotion(YAXIS) = 0;//_yRotationController.calculateOutput(_yAngle, _rotY);
 	_rotationalMotion(ZAXIS) = _zRotationController.calculateOutput(_zAngle, _rotZ);
 
 	_pwmOutputs[MXF1] = combineMotion(_linearMotion(XAXIS),
@@ -263,6 +264,7 @@ double PWMController::linearize(int motor, double speed) {
 
 
 void PWMController::run() {
+	std::cout << "PWMController started" << std::endl;
 	while(1) {
 		pollData();
 		calculateOutputs();

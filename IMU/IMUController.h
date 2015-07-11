@@ -8,6 +8,7 @@
 #ifndef IMUCONTROLLER_H_
 #define IMUCONTROLLER_H_
 
+#include <iostream>
 #include <thread>
 #include <mutex>
 #include <Eigen/Dense>
