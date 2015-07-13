@@ -179,5 +179,12 @@ void Cubeception::initPWMController() {
 									   _iniReader->GetReal("pwm", "dp", 0),
 									   _iniReader->GetReal("pwm", "di", 0),
 									   _iniReader->GetReal("pwm", "dd", 0),
-									   _iniReader->GetReal("pwm", "df", 0));
+									   _iniReader->GetReal("pwm", "df", 0),
+									   _iniReader->GetReal("pwm", "xtolerance", 5),
+									   _iniReader->GetReal("pwm", "ytolerance", 5),
+									   _iniReader->GetReal("pwm", "ztolerance", 5),
+									   _iniReader->GetReal("pwm", "depthtolerance", 0.1),
+									   _iniReader->GetReal("pwm", "xintegratorlimit", 0),
+									   _iniReader->GetReal("pwm", "yintegratorlimit", 0),
+									   _iniReader->GetReal("pwm", "zintegratorlimit", 0));
 }

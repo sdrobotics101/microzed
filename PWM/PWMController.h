@@ -19,6 +19,7 @@
 #include "../PS/PSController.h"
 #include "../Utilities/PIDController.h"
 #include "../Utilities/Constants.h"
+#include "../Utilities/Timer.h"
 
 class PWMController {
 public:
@@ -43,7 +44,14 @@ public:
 				  double dP,
 				  double dI,
 				  double dD,
-				  double dF);
+				  double dF,
+				  double xTolerance,
+				  double yTolerance,
+				  double zTolerance,
+				  double depthTolerance,
+				  double xIntegratorLimit,
+				  double yIntegratorLimit,
+				  double zIntegratorLimit);
 	virtual ~PWMController();
 
 	void start();
@@ -68,6 +76,8 @@ private:
 	PIDController _yRotationController;
 	PIDController _zRotationController;
 	PIDController _depthController;
+
+	Timer _timer;
 
 	PWM *_pwm;
 	const uint32_t _pwmAddr;

@@ -30,6 +30,8 @@ public:
 	void setOutputLimits(double min, double max);
 	void setInputLimits(double min, double max);
 	void setContinuous(bool isContinuous);
+	void setTolerance(double tolerance);
+	void setIntegratorLimit(double limit);
 
 	double getP();
 	double getI();
@@ -41,6 +43,7 @@ public:
 	double getMinInput();
 	double getMaxInput();
 	bool isContinuous();
+	bool isWithinTolerance();
 
 	double getError();
 	double getIntegral();
@@ -64,6 +67,11 @@ private:
 	double _minInput;
 	double _maxInput;
 	bool _isContinuous;
+
+	double _tolerance;
+	bool _isWithinTolerance;
+
+	double _integratorLimit;
 
 	double _error;
 	double _previousError;

@@ -74,7 +74,7 @@ void PSController::pollSensors() {
 	_ms1->readSensor();
 
 	std::lock_guard<std::mutex> lock(_mutex);
-	_avgPressure = ((_ms0->pressure() + _ms1->pressure()) / 2);
+	_avgPressure = _ms0->pressure();// + _ms1->pressure()) / 2);
 }
 
 void PSController::calculateDepth() {

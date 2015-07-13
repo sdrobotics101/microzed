@@ -28,7 +28,14 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 double dP,
 		  	  	  	  	  	 double dI,
 		  	  	  	  	  	 double dD,
-		  	  	  	  	  	 double dF) :
+		  	  	  	  	  	 double dF,
+		  	  	  	  	  	 double xTolerance,
+		  	  	  	  	  	 double yTolerance,
+		  	  	  	  	  	 double zTolerance,
+		  	  	  	  	  	 double depthTolerance,
+		  	  	  	  	  	 double xIntegratorLimit,
+		  	  	  	  	  	 double yIntegratorLimit,
+		  	  	  	  	  	 double zIntegratorLimit) :
 		  	  	  	  	  	 _networkClient(networkClient),
 		  	  	  	  	  	 _imuController(imuController),
 		  	  	  	  	  	 _psController(psController),
@@ -38,20 +45,27 @@ PWMController::PWMController(NetworkClient *networkClient,
 	_xRotationController.setInputLimits(-180, 180);
 	_xRotationController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_xRotationController.setContinuous(true);
+	_xRotationController.setTolerance(xTolerance);
+	_xRotationController.setIntegratorLimit(xIntegratorLimit);
 
 	_yRotationController.setPIDF(yP, yI, yD, yF);
 	_yRotationController.setInputLimits(-180, 180);
 	_yRotationController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_yRotationController.setContinuous(true);
+	_yRotationController.setTolerance(yTolerance);
+	_yRotationController.setIntegratorLimit(yIntegratorLimit);
 
 	_zRotationController.setPIDF(zP, zI, zD, zF);
 	_zRotationController.setInputLimits(-180, 180);
 	_zRotationController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_zRotationController.setContinuous(true);
+	_zRotationController.setTolerance(zTolerance);
+	_zRotationController.setIntegratorLimit(zIntegratorLimit);
 
 	_depthController.setPIDF(dP, dI, dD, dF);
 	_depthController.setOutputLimits(PWMMINOUTPUT, PWMMAXOUTPUT);
 	_depthController.setContinuous(false);
+	_depthController.setTolerance(depthTolerance);
 
 	for (int i = 0;i < NUMMOTORS;i++) {
 		_pwmMap[i] = pwmMap[i];
@@ -74,6 +88,7 @@ void PWMController::start() {
 	_yRotationController.start();
 	_zRotationController.start();
 	_depthController.start();
+	_timer.start();
 	run();
 }
 
@@ -106,8 +121,8 @@ void PWMController::pollData() {
 }
 
 void PWMController::calculateOutputs() {
-	_linearMotion(XAXIS) = _velX;
-	_linearMotion(YAXIS) = _velY;
+	_linearMotion(XAXIS) = 0;// _velX;
+	_linearMotion(YAXIS) = 0; // _velY;
 	_linearMotion(ZAXIS) = _depthController.calculateOutput(_depth, _posZ);
 
 	Eigen::AngleAxisd xRotationMatrix(-_xAngle * (M_PI/180), Eigen::Vector3d::UnitX());
@@ -220,10 +235,12 @@ void PWMController::writeOutputs() {
 	_networkClient->get_m2n_standard_packet()->set_orient_z(_zAngle);
 	_networkClient->get_m2n_standard_packet()->set_pos_z(_depth);
 
+	std::cout << std::endl;
 	std::cout << "X: " << _xAngle << std::endl;
 	std::cout << "Y: " << _yAngle << std::endl;
 	std::cout << "Z: " << _zAngle << std::endl;
 	std::cout << "D: " << _depth << std::endl;
+	std::cout << "T: " << _timer.dt() << std::endl;
 }
 
 double PWMController::combineMotion(double linear, double rotational1, double rotational2) {
@@ -235,12 +252,12 @@ double PWMController::combineMotion(double linear, double rotational1, double ro
 double PWMController::linearize(int motor, double speed) {
 
     /* speed calibration based on slowest motor */
-    double motor_cal[24] = {0.9861, 0.9301, 0.9816, 0.9682,
-                            0.9064, 0.9301, 1.0000, 0.8950,
-                            0.9425, 0.9025, 0.9638, 0.9816,
-                            0.9301, 0.9261, 0.9025, 0.9816,
-                            0.9181, 0.9261, 0.8068, 0.9142,
-                            0.9301, 0.9342, 0.9861, 0.9425};
+    double motor_cal[24] = {0.8182, 0.8674, 0.8220, 0.8333,
+            				0.8902, 0.8674, 0.9205, 0.9015,
+            				0.8144, 0.8939, 0.8371, 0.8220,
+            				0.8674, 0.8712, 0.8939, 0.8220,
+            				0.8788, 0.8712, 1.0000, 0.8826,
+            				0.8674, 0.8636, 0.8182, 0.8561};
 
     /* polynomial coefficients for linearizer curve fit */
     double poly[3] = {0.003666, -0.659065, 29.217563};

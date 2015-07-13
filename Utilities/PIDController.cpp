@@ -21,6 +21,9 @@ PIDController::PIDController(double p, double i, double d, double f) :
 	_minInput = 0;
 	_minOutput = 0;
 	_isContinuous = false;
+	_tolerance = 0;
+	_isWithinTolerance = false;
+	_integratorLimit = 0;
 	_isRunning = false;
 }
 
@@ -79,6 +82,14 @@ void PIDController::setContinuous(bool isContinuous) {
 	_isContinuous = isContinuous;
 }
 
+void PIDController::setTolerance(double tolerance) {
+	_tolerance = tolerance;
+}
+
+void PIDController::setIntegratorLimit(double limit) {
+	_integratorLimit = limit;
+}
+
 double PIDController::getP() {
 	return _p;
 }
@@ -115,6 +126,10 @@ bool PIDController::isContinuous() {
 	return _isContinuous;
 }
 
+bool PIDController::isWithinTolerance() {
+	return _isWithinTolerance;
+}
+
 double PIDController::getError() {
 	return _error;
 }
@@ -146,6 +161,13 @@ double PIDController::calculateOutput(double input, double setpoint) {
 
 	_error = setpoint - input;
 	_setpoint = setpoint;
+
+	if (input > _setpoint - _tolerance && input < _setpoint + _tolerance) {
+		_isWithinTolerance = true;
+	} else {
+		_isWithinTolerance = false;
+	}
+
 	return calculateOutput();
 }
 
@@ -170,6 +192,10 @@ double PIDController::calculateOutput() {
 	_integral += _error * _dt;
 	_derivative = ((_error - _previousError) / _dt);
 	_previousError = _error;
+
+	if (_integratorLimit != 0 && std::abs(_error) > _integratorLimit) {
+		_integral = 0;
+	}
 
 	_output = (_p * _error) + (_i * _integral) + (_d * _derivative) + (_f * _setpoint);
 
