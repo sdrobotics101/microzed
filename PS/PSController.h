@@ -19,6 +19,8 @@ class PSController {
 public:
 	PSController(uint32_t ms0Addr,
 				 uint32_t ms1Addr,
+				 bool useMS0,
+				 bool useMS1,
 				 double waterDensity,
 				 double atmosphericPressure);
 	virtual ~PSController();
@@ -43,6 +45,9 @@ private:
 	const uint32_t _ms1Addr;
 	MS5803 *_ms0;
 	MS5803 *_ms1;
+
+	bool _useMS0;
+	bool _useMS1;
 
 	double _avgPressure;
 	double _depth;

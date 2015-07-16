@@ -119,23 +119,61 @@ void IMUController::pollSensors() {
 }
 
 void IMUController::correctData() {
-	_mpu0AccData -= _mpu0AccBias;
-	_mpu1AccData -= _mpu1AccBias;
-	_avgAccData = _mpu0AccData + _mpu1AccData;
-	_avgAccData /= 2;
+	if (_mpu0AccData(XAXIS) == 0 &&
+		_mpu0AccData(YAXIS) == 0 &&
+		_mpu0AccData(ZAXIS) == 0) {
+		_mpu1AccData -= _mpu1AccBias;
+		_avgAccData = _mpu1AccData;
+	} else if (_mpu1AccData(XAXIS) == 0 &&
+			   _mpu1AccData(YAXIS) == 0 &&
+			   _mpu1AccData(ZAXIS) == 0) {
+		_mpu0AccData -= _mpu0AccBias;
+		_avgAccData = _mpu0AccData;
+	} else {
+		_mpu0AccData -= _mpu0AccBias;
+		_mpu1AccData -= _mpu1AccBias;
+		_avgAccData = _mpu0AccData + _mpu1AccData;
+		_avgAccData /= 2;
+	}
 
-	_mpu0GyroData -= _mpu0GyroBias;
-	_mpu1GyroData -= _mpu1GyroBias;
-	_avgGyroData = _mpu0GyroData + _mpu1GyroData;
-	_avgGyroData /= 2;
+	if (_mpu0GyroData(XAXIS) == 0 &&
+		_mpu0GyroData(YAXIS) == 0 &&
+		_mpu0GyroData(ZAXIS) == 0) {
+		_mpu1GyroData -= _mpu1GyroBias;
+		_avgGyroData = _mpu1GyroData;
+	} else if (_mpu1GyroData(XAXIS) == 0 &&
+			   _mpu1GyroData(YAXIS) == 0 &&
+			   _mpu1GyroData(ZAXIS) == 0) {
+		_mpu0GyroData -= _mpu0GyroBias;
+		_avgGyroData = _mpu0GyroData;
+	} else {
+		_mpu0GyroData -= _mpu0GyroBias;
+		_mpu1GyroData -= _mpu1GyroBias;
+		_avgGyroData = _mpu0GyroData + _mpu1GyroData;
+		_avgGyroData /= 2;
+	}
 
-	_mpu0MagData -= (_mpu0MagBias * MAGNETOMETERSCALEFACTOR);
-	_mpu1MagData -= (_mpu1MagBias * MAGNETOMETERSCALEFACTOR);
-	_mpu0MagData = _mpu0MagTransform * _mpu0MagData;
-	_mpu1MagData = _mpu1MagTransform * _mpu1MagData;
+	if (_mpu0MagData(XAXIS) == 0 &&
+		_mpu0MagData(YAXIS) == 0 &&
+		_mpu0MagData(ZAXIS) == 0) {
+		_mpu1MagData -= (_mpu1MagBias * MAGNETOMETERSCALEFACTOR);
+		_mpu1MagData = _mpu1MagTransform * _mpu1MagData;
+		_avgMagData = _mpu1MagData;
+	} else if (_mpu1MagData(XAXIS) == 0 &&
+			   _mpu1MagData(YAXIS) == 0 &&
+			   _mpu1MagData(ZAXIS) == 0) {
+		_mpu0MagData -= (_mpu0MagBias * MAGNETOMETERSCALEFACTOR);
+		_mpu0MagData = _mpu0MagTransform * _mpu0MagData;
+		_avgMagData = _mpu0MagData;
+	} else {
+		_mpu0MagData -= (_mpu0MagBias * MAGNETOMETERSCALEFACTOR);
+		_mpu1MagData -= (_mpu1MagBias * MAGNETOMETERSCALEFACTOR);
+		_mpu0MagData = _mpu0MagTransform * _mpu0MagData;
+		_mpu1MagData = _mpu1MagTransform * _mpu1MagData;
 
-	_avgMagData = _mpu0MagData + _mpu1MagData;
-	_avgMagData /= 2;
+		_avgMagData = _mpu0MagData + _mpu1MagData;
+		_avgMagData /= 2;
+	}
 }
 
 void IMUController::calculateOrientation() {

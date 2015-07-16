@@ -121,8 +121,8 @@ void PWMController::pollData() {
 }
 
 void PWMController::calculateOutputs() {
-	_linearMotion(XAXIS) = 0;// _velX;
-	_linearMotion(YAXIS) = 0; // _velY;
+	_linearMotion(XAXIS) = _velX;
+	_linearMotion(YAXIS) = _velY;
 	_linearMotion(ZAXIS) = _depthController.calculateOutput(_depth, _posZ);
 
 	Eigen::AngleAxisd xRotationMatrix(-_xAngle * (M_PI/180), Eigen::Vector3d::UnitX());

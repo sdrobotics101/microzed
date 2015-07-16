@@ -9,10 +9,14 @@
 
 PSController::PSController(uint32_t ms0Addr,
 		 	 	 	 	   uint32_t ms1Addr,
+		 	 	 	 	   bool useMS0,
+		 	 	 	 	   bool useMS1,
 		 	 	 	 	   double waterDensity,
 		 	 	 	 	   double atmosphericPressure) :
 		 	 	 	 	   _ms0Addr(ms0Addr),
 		 	 	 	 	   _ms1Addr(ms1Addr),
+		 	 	 	 	   _useMS0(useMS0),
+		 	 	 	 	   _useMS1(useMS1),
 		 	 	 	 	   _waterDensity(waterDensity),
 		 	 	 	 	   _atmosphericPressure(atmosphericPressure),
 		 	 	 	 	   _conversionFactor((PA2MBARCONVERSION / (G * _waterDensity))) {
@@ -74,7 +78,16 @@ void PSController::pollSensors() {
 	_ms1->readSensor();
 
 	std::lock_guard<std::mutex> lock(_mutex);
-	_avgPressure = _ms0->pressure();// + _ms1->pressure()) / 2);
+	_avgPressure = 0;
+	if (_useMS0) {
+		_avgPressure += _ms0->pressure();
+	}
+	if (_useMS1) {
+		_avgPressure += _ms1->pressure();
+	}
+	if (_useMS0 && _useMS1) {
+		_avgPressure *= (0.5);
+	}
 }
 
 void PSController::calculateDepth() {

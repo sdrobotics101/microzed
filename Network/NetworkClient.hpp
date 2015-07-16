@@ -1,6 +1,7 @@
 #ifndef NetworkClient_hpp
 #define NetworkClient_hpp
 
+#include <iostream>
 #include <thread>
 #include <asio.hpp>
 

@@ -122,6 +122,8 @@ void Cubeception::initIMUController() {
 void Cubeception::initPSController() {
 	_psController = new PSController(_iniReader->GetInteger("ps", "ms0addr", 0x00020000),
 									 _iniReader->GetInteger("ps", "ms1addr", 0x00030000),
+									 _iniReader->GetBoolean("ps", "usems0", true),
+									 _iniReader->GetBoolean("ps", "usems1", true),
 									 _iniReader->GetReal("ps", "waterdensity", 1000),
 									 _iniReader->GetReal("ps", "atmosphericpressure", 1000));
 }
