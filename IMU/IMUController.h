@@ -38,6 +38,9 @@ public:
 	void reset();
 	bool isRunning();
 
+	void setSensorsToUse(int mode); //0 = both, 1 = gyro only, 2 = acc/mag only
+	int getSensorMode();
+
 	double getXRotation();
 	double getYRotation();
 	double getZRotation();
@@ -90,6 +93,8 @@ private:
 
 	bool _useGyro;
 	double _combine;
+
+	int _sensorMode;
 
 	Timer _timer;
 

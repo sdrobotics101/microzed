@@ -43,6 +43,7 @@ void PIDController::reset() {
 	_derivative = 0;
 	_setpoint = 0;
 	_output = 0;
+	_timer.reset();
 }
 
 void PIDController::setPIDF(double p, double i, double d, double f) {

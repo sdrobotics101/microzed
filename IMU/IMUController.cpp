@@ -31,8 +31,9 @@ IMUController::IMUController(uint32_t mpu0Addr,
 		  	  	  	  	  	 _mpu1MagTransform(mpu1MagTransform) {
 	initSensors();
 	_isThreadRunning = false;
+	_sensorMode = SENSORMODEBOTH;
 	reset();
-	std::cout << "IMUController initialized" << std::endl;
+	//std::cout << "IMUController initialized" << std::endl;
 }
 
 IMUController::~IMUController() {
@@ -74,6 +75,18 @@ void IMUController::reset() {
 
 bool IMUController::isRunning() {
 	return _isThreadRunning;
+}
+
+void IMUController::setSensorsToUse(int mode) {
+	if (mode < 0 || mode > 2) {
+		_sensorMode = 0;
+	} else {
+		_sensorMode = mode;
+	}
+}
+
+int IMUController::getSensorMode() {
+	return _sensorMode;
 }
 
 double IMUController::getXRotation() {
@@ -200,17 +213,42 @@ void IMUController::calculateOrientation() {
 	}
 
 	if (_useGyro) {
-		_gyroAngles = _combinedAngles + (_avgGyroData * _timer.dt());
-		_combinedAngles = (_combine * _gyroAngles) + ((1-_combine) * _accMagAngles);
+		if (_sensorMode == SENSORMODEGYROONLY) {
+			_combinedAngles = _gyroAngles;
+		} else if (_sensorMode == SENSORMODEACCMAGONLY) {
+			_combinedAngles = _accMagAngles;
+		} else {
+			_gyroAngles = _combinedAngles + (_avgGyroData * _timer.dt());
+			_combinedAngles = (_combine * _gyroAngles) + ((1-_combine) * _accMagAngles);
+		}
 	} else {
 		_combinedAngles = _accMagAngles;
 		_useGyro = true;
+	}
+
+	while (_combinedAngles[XAXIS] > 180) {
+		_combinedAngles[XAXIS] -= 360;
+	}
+	while (_combinedAngles[YAXIS] > 180) {
+			_combinedAngles[YAXIS] -= 360;
+	}
+	while (_combinedAngles[ZAXIS] > 180) {
+			_combinedAngles[ZAXIS] -= 360;
+	}
+	while (_combinedAngles[XAXIS] < -180) {
+		_combinedAngles[XAXIS] += 360;
+	}
+	while (_combinedAngles[YAXIS] < -180) {
+			_combinedAngles[YAXIS] += 360;
+	}
+	while (_combinedAngles[ZAXIS] < -180) {
+			_combinedAngles[ZAXIS] += 360;
 	}
 }
 
 void IMUController::run() {
 	_timer.start();
-	std::cout << "IMUController started" << std::endl;
+	//std::cout << "IMUController started" << std::endl;
 	while(1) {
 		pollSensors();
 		correctData();

@@ -10,21 +10,21 @@
 Cubeception::Cubeception(std::string configFile) {
 	_iniReader = new INIReader(configFile);
 	if (_iniReader->ParseError() < 0) {
-		std::cout << "Could not find config file" << std::endl;
-		std::cout << "Initializing using default values" << std::endl;
+		//std::cout << "Could not find config file" << std::endl;
+		//std::cout << "Initializing using default values" << std::endl;
 	} else {
-		std::cout << "Found config file" << std::endl;
+		//std::cout << "Found config file" << std::endl;
 	}
-	std::cout << "Beginning Initialization" << std::endl;
+	//std::cout << "Beginning Initialization" << std::endl;
 
 	initNetworkClient();
-	std::cout << "Network Client initialized" << std::endl;
+	//std::cout << "Network Client initialized" << std::endl;
 
 	initIMUController();
 	initPSController();
 	initPWMController();
 
-	std::cout << "Finished Initialization" << std::endl;
+	//std::cout << "Finished Initialization" << std::endl;
 }
 
 Cubeception::~Cubeception() {
@@ -36,10 +36,10 @@ Cubeception::~Cubeception() {
 }
 
 void Cubeception::start() {
-	std::cout << "Starting" << std::endl;
+	//std::cout << "Starting" << std::endl;
 
 	_networkClient->start();
-	std::cout << "Network Client started" << std::endl;
+	//std::cout << "Network Client started" << std::endl;
 
 	_imuController->start();
 	_psController->start();
@@ -165,6 +165,10 @@ void Cubeception::initPWMController() {
 									   _psController,
 									   _iniReader->GetInteger("pwm", "pwmaddr", 0x00010000),
 									   pwmMap,
+									   _iniReader->GetInteger("kill", "killregister", 0x00000008),
+									   _iniReader->GetInteger("kill", "killbit", 4),
+									   _iniReader->GetInteger("kill", "killthreshold", 5),
+									   _iniReader->GetBoolean("kill", "killstate", true),
 									   _iniReader->GetReal("pwm", "pwmcombine", 0.6),
 									   _iniReader->GetReal("pwm", "xp", 0),
 									   _iniReader->GetReal("pwm", "xi", 0),

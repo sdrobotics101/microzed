@@ -12,6 +12,10 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 PSController *psController,
 		  	  	  	  	  	 uint32_t pwmAddr,
 		  	  	  	  	  	 uint32_t pwmMap[NUMMOTORS],
+		  	  	  	  	  	 uint32_t killRegister,
+		  	  	  	  	  	 uint32_t killBit,
+		  	  	  	  	  	 int killThreshold,
+		  	  	  	  	  	 bool killState,
 		  	  	  	  	  	 double combinerRatio,
 		  	  	  	  	  	 double xP,
 		  	  	  	  	  	 double xI,
@@ -40,6 +44,10 @@ PWMController::PWMController(NetworkClient *networkClient,
 		  	  	  	  	  	 _imuController(imuController),
 		  	  	  	  	  	 _psController(psController),
 		  	  	  	  	  	 _pwmAddr(pwmAddr),
+		  	  	  	  	  	 _killRegister(killRegister),
+		  	  	  	  	  	 _killBit(killBit),
+		  	  	  	  	  	 _killThreshold(killThreshold),
+		  	  	  	  	  	 _killState(killState),
 		  	  	  	  	  	 _combinerRatio(combinerRatio) {
 	_xRotationController.setPIDF(xP, xI, xD, xF);
 	_xRotationController.setInputLimits(-180, 180);
@@ -75,8 +83,12 @@ PWMController::PWMController(NetworkClient *networkClient,
 		_pwmOutputs[i] = 0;
 	}
 
+	_killCount = 0;
+
+	_sensorMode = _imuController->getSensorMode();
+
 	initPWM();
-	std::cout << "PWMController initialized" << std::endl;
+	//std::cout << "PWMController initialized" << std::endl;
 }
 
 PWMController::~PWMController() {
@@ -114,6 +126,20 @@ void PWMController::pollData() {
 	_rotX = _networkClient->get_n2m_standard_packet()->get_rot_x();
 	_rotY = _networkClient->get_n2m_standard_packet()->get_rot_y();
 	_rotZ = _networkClient->get_n2m_standard_packet()->get_rot_z();
+
+	if (_networkClient->get_n2m_standard_packet()->get_mode()[0]) {
+		_imuController->setSensorsToUse(SENSORMODEGYROONLY);
+	} else if (_networkClient->get_n2m_standard_packet()->get_mode()[1]) {
+		_imuController->setSensorsToUse(SENSORMODEACCMAGONLY);
+	} else {
+		_imuController->setSensorsToUse(SENSORMODEBOTH);
+	}
+
+	if (_imuController->getSensorMode() != _sensorMode) {
+		_imuController->reset();
+		_sensorMode = _imuController->getSensorMode();
+	}
+
 	_xAngle = _imuController->getXRotation();
 	_yAngle = _imuController->getYRotation();
 	_zAngle = _imuController->getZRotation();
@@ -125,8 +151,8 @@ void PWMController::calculateOutputs() {
 	_linearMotion(YAXIS) = _velY;
 	_linearMotion(ZAXIS) = _depthController.calculateOutput(_depth, _posZ);
 
-	Eigen::AngleAxisd xRotationMatrix(-_xAngle * (M_PI/180), Eigen::Vector3d::UnitX());
-	Eigen::AngleAxisd yRotationMatrix(-_yAngle * (M_PI/180), Eigen::Vector3d::UnitY());
+	Eigen::AngleAxisd xRotationMatrix(0/*-_xAngle * (M_PI/180)*/, Eigen::Vector3d::UnitX());
+	Eigen::AngleAxisd yRotationMatrix(0/*-_yAngle * (M_PI/180)*/, Eigen::Vector3d::UnitY());
 	Eigen::AngleAxisd zRotationMatrix(-_zAngle * (M_PI/180), Eigen::Vector3d::UnitZ());
 
 	_linearMotion = xRotationMatrix.toRotationMatrix() *
@@ -227,7 +253,7 @@ void PWMController::calculateOutputs() {
 	}
 }
 
-void PWMController::writeOutputs() {
+void PWMController::writeOutputs(bool isKilled) {
 	_pwm->setDuty(_pwmOutputs);
 
 	_networkClient->get_m2n_standard_packet()->set_orient_x(_xAngle);
@@ -235,12 +261,35 @@ void PWMController::writeOutputs() {
 	_networkClient->get_m2n_standard_packet()->set_orient_z(_zAngle);
 	_networkClient->get_m2n_standard_packet()->set_pos_z(_depth);
 
-	std::cout << std::endl;
-	std::cout << "X: " << _xAngle << std::endl;
-	std::cout << "Y: " << _yAngle << std::endl;
-	std::cout << "Z: " << _zAngle << std::endl;
-	std::cout << "D: " << _depth << std::endl;
-	std::cout << "T: " << _timer.dt() << std::endl;
+	if (isKilled) {
+		_networkClient->get_m2n_standard_packet()->set_health(0.0);
+	} else {
+		_networkClient->get_m2n_standard_packet()->set_health(1.0);
+	}
+
+	for (int i = 0;i < 23;i++) {
+		std::cout << _pwmOutputs[i] << ",";
+	}
+	std::cout << _pwmOutputs[23] << std::endl;
+
+	printf("%8.4f,%8.4f,%8.4f,%8.4f,%8.4f\n", _xAngle, _yAngle, _zAngle, _depth, _timer.dt());
+	std::cout.flush();
+}
+
+bool PWMController::isKilled() {
+	uint32_t result = 0;
+	regio_rd32(_killRegister, &result, 0);
+	if (((result & _killBit) > 0) && _killState) {
+		_killCount++;
+	} else {
+		_killCount = 0;
+	}
+
+	if (_killCount > _killThreshold) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 double PWMController::combineMotion(double linear, double rotational1, double rotational2) {
@@ -286,11 +335,41 @@ double PWMController::linearize(int motor, double speed) {
 
 
 void PWMController::run() {
-	std::cout << "PWMController started" << std::endl;
+	//std::cout << "PWMController started" << std::endl;
 	while(1) {
-		pollData();
-		calculateOutputs();
-		writeOutputs();
-		std::this_thread::sleep_for(std::chrono::milliseconds(PWMLOOPTIME));
+	//	pollData();
+	//	calculateOutputs();
+	//	writeOutputs();
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(PWMLOOPTIME));
+	//}
+
+		while (!isKilled()) {
+			pollData();
+			calculateOutputs();
+			writeOutputs(false);
+			std::this_thread::sleep_for(std::chrono::milliseconds(PWMLOOPTIME));
+		}
+		stop();
+		std::cout << "KILLED" << std::endl;
+
+		while (isKilled()) {
+			pollData();
+			writeOutputs(true);
+			std::this_thread::sleep_for(std::chrono::milliseconds(PWMLOOPTIME));
+		}
+		_imuController->reset();
+
+		_xRotationController.reset();
+		_yRotationController.reset();
+		_zRotationController.reset();
+		_depthController.reset();
+
+		_xRotationController.start();
+		_yRotationController.start();
+		_zRotationController.start();
+		_depthController.start();
+
+		_pwm->enable();
+		std::cout << "ACTIVE" << std::endl;
 	}
 }

@@ -31,9 +31,9 @@ void NetworkClient::open(std::string ip_address, int port_number)
     {
         io_service = new asio::io_service();
         receiver_endpoint = new asio::ip::udp::endpoint(asio::ip::address::from_string(ip_address), port_number);
-        //socket = new asio::ip::udp::socket(*io_service);
-        socket = new asio::ip::udp::socket(*io_service, asio::ip::udp::endpoint(asio::ip::udp::v4(), 8888));
-        //socket->open(asio::ip::udp::v4());
+        socket = new asio::ip::udp::socket(*io_service);
+        //socket = new asio::ip::udp::socket(*io_service, asio::ip::udp::endpoint(asio::ip::udp::v4(), 8888));
+        socket->open(asio::ip::udp::v4());
     }
     catch (std::exception& e)
     {

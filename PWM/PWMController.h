@@ -20,6 +20,7 @@
 #include "../Utilities/PIDController.h"
 #include "../Utilities/Constants.h"
 #include "../Utilities/Timer.h"
+#include "../Utilities/regio.h"
 
 class PWMController {
 public:
@@ -28,6 +29,10 @@ public:
 				  PSController *psController,
 				  uint32_t pwmAddr,
 				  uint32_t pwmMap[NUMMOTORS],
+				  uint32_t killRegister,
+				  uint32_t killBit,
+				  int killThreshold,
+				  bool killState,
 				  double combinerRatio,
 				  double xP,
 				  double xI,
@@ -61,7 +66,9 @@ private:
 	void initPWM();
 	void pollData();
 	void calculateOutputs();
-	void writeOutputs();
+	void writeOutputs(bool isKilled);
+
+	bool isKilled();
 
 	double combineMotion(double linear, double rotational1, double rotational2);
 	double linearize(int motor, double speed);
@@ -83,6 +90,12 @@ private:
 	const uint32_t _pwmAddr;
 	uint32_t _pwmMap[NUMMOTORS];
 
+	uint32_t _killRegister;
+	uint32_t _killBit;
+	int _killCount;
+	int _killThreshold;
+	bool _killState;
+
 	double _velX;
 	double _velY;
 	double _posZ;
@@ -93,6 +106,8 @@ private:
 	double _yAngle;
 	double _zAngle;
 	double _depth;
+
+	int _sensorMode;
 
 	Eigen::Vector3d _linearMotion;
 	Eigen::Vector3d _rotationalMotion;
